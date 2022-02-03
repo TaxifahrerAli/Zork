@@ -42,7 +42,7 @@ while input("Gib START ein, um das Spiel zu starten. -- ") == "START":
         elif position == "Handler":
             print("Du befindest dich beim HÄNDLER.","Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück gehen.")
             print("Du hast %d Lebenspunkte." % lebenspunkte, "%s" % schwert)
-            if schwertVerfügb == True:
+            if schwertVerfugb == True:
                 auswahl = input("1) Schwert Kaufen\n2) Zurück\n-- ")
                 if auswahl == "1)":
                     schwert = "Du hast ein Schwert"
