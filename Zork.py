@@ -7,6 +7,7 @@ auswahl = ""
 schwert = ""
 zahl = 6
 schwertVerfugb = True
+schatzVerfugb = True
 
 print("Um eine Richtung auszuwählen musst du lediglich die Zahl mit einer Klammer schreiben: z.B. '1)'.")
 
@@ -22,17 +23,30 @@ while lebenspunkte > 0:
     elif position == "Schatzkammer":
         print("Du befindest dich in der SCHATZKAMMER.","Du musst nun gegen den Drachen kämpfen, indem du würfelst oder du gehst zurück.")
         print("Du hast %d Lebenspunkte." % lebenspunkte, "%s" % schwert)
-        auswahl = input("1) Würfeln\n2) Zurück\n-- ")
-        if auswahl == "1)":
-            if randint(1,zahl) == 6:
-                print("Du hast den Drachen besiegt!")
-                kampfBeendet = True
-            else:
-                lebenspunkte = lebenspunkte -1
-                if lebenspunkte == 0:
+        if kampfBeendet == False:
+            auswahl = input("1) Drachen bekämpfen\n2) Zurück\n-- ")
+            if auswahl == "1)":
+                if randint(1,zahl) < 4 and zahl == 3:
+                    print("Du hast den Drachen besiegt!")
                     kampfBeendet = True
-                print("Du hast %d Lebenspunkte." % lebenspunkte)
-        elif auswahl == "2)":
+                elif randint(1,zahl) == 6 and zahl == 6:
+                    print("Du hast den Drachen besiegt!")
+                    kampfBeendet = True
+                else:
+                    lebenspunkte = lebenspunkte -1
+                    if lebenspunkte == 0:
+                        kampfBeendet = True
+            elif auswahl == "2)":
+                    position = "Eingang"
+        elif kampfBeendet == True and schatzVerfugb == True:
+            auswahl = input("1) Schatz aufheben\n2) Zurück\n-- ")
+            if auswahl == "1)":
+                print("Schatz aufgehoben!")
+                schatzVerfugb = False
+            elif auswahl == "2)":
+                position = "Eingang"
+        elif kampfBeendet == True and schatzVerfugb != True:
+            if input("1) Zurück\n-- ") == "1)":
                 position = "Eingang"
     elif position == "Handler":
         print("Du befindest dich beim HÄNDLER.","Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück gehen.")
@@ -43,6 +57,7 @@ while lebenspunkte > 0:
                 schwert = "Du hast ein Schwert"
                 zahl = 3
                 schwertVerfugb = False
+                lebenspunkte = lebenspunkte -1
             elif auswahl == "2)":
                 position = "Eingang"
         elif schwertVerfugb == False:
