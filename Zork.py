@@ -6,7 +6,7 @@ lebenspunkte = 5
 auswahl = ""
 schwert = ""
 zahl = 6
-schwertVerfügb = True
+schwertVerfugb = True
 
 while input("Gib START ein, um das Spiel zu starten. -- ") == "START": 
     print("=== Spiel gestartet! ===")
@@ -47,10 +47,10 @@ while input("Gib START ein, um das Spiel zu starten. -- ") == "START":
                 if auswahl == "1)":
                     schwert = "Du hast ein Schwert"
                     zahl = 3
-                    schwertVerfügb = False
+                    schwertVerfugb = False
                 elif auswahl == "2)":
                     position = "Eingang"
-            elif schwertVerfügb == False:
+            elif schwertVerfugb == False:
                 auswahl = input("1) Zurück\n-- ")
                 if auswahl == "1)":
                     position = "Eingang"
@@ -60,4 +60,3 @@ while input("Gib START ein, um das Spiel zu starten. -- ") == "START":
         position = "Eingang"
     elif auswahl == "ENDE":
         print("Ende")
-        
