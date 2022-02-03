@@ -22,18 +22,17 @@ while lebenspunkte > 0:
     elif position == "Schatzkammer":
         print("Du befindest dich in der SCHATZKAMMER.","Du musst nun gegen den Drachen kämpfen, indem du würfelst oder du gehst zurück.")
         print("Du hast %d Lebenspunkte." % lebenspunkte, "%s" % schwert)
-        # while kampfBeendet == False and position != "Eingang":
-            auswahl = input("1) Würfeln\n2) Zurück\n-- ")
-            if auswahl == "1)":
-                if randint(1,zahl) == 6:
-                    print("Du hast den Drachen besiegt!")
+        auswahl = input("1) Würfeln\n2) Zurück\n-- ")
+        if auswahl == "1)":
+            if randint(1,zahl) == 6:
+                print("Du hast den Drachen besiegt!")
+                kampfBeendet = True
+            else:
+                lebenspunkte = lebenspunkte -1
+                if lebenspunkte == 0:
                     kampfBeendet = True
-                else:
-                    lebenspunkte = lebenspunkte -1
-                    if lebenspunkte == 0:
-                        kampfBeendet = True
-                    print("Du hast %d Lebenspunkte." % lebenspunkte)
-            elif auswahl == "2)":
+                print("Du hast %d Lebenspunkte." % lebenspunkte)
+        elif auswahl == "2)":
                 position = "Eingang"
     elif position == "Handler":
         print("Du befindest dich beim HÄNDLER.","Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück gehen.")
