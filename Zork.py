@@ -11,35 +11,34 @@ state = {
 
 def show_invetory():
     print("Du hast %d Lebenspunkte." % state["hp"],
-        "Du hast ein Schwert" if not state["swordAvail"] else "",
-        "Du hast den Schatz" if not state["treasureAvail"] else "")
+        "Du hast ein Schwert." if not state["swordAvail"] else "",
+        "Du hast den Schatz." if not state["treasureAvail"] else "")
 
 
 def room_eingang(state):
-    newstate = state
     print("Du befindest dich im EINGANG.",
         "Du kannst in die Schatzkammer oder zum Händler gehen.")
     show_invetory()
     if state["treasureAvail"]:
         memory = input("1) Schatzkammer\n2) Händler\n-- ")
         if memory == "1)":
-            newstate["position"] = "Schatzkammer"
+            return {**state, "position" : "Schatzkammer"}
         elif memory == "2)":
-            newstate["position"] = "Handler"
+            return {**state, "position" : "Handler"}
+        else:
+            return {**state}
     elif not state["treasureAvail"]:
         memory = input("1) Schatzkammer\n2) Händler\n3) Beenden\n-- ")
         if memory == "1)":
-            newstate["position"] = "Schatzkammer"
+            return {**state, "position" : "Schatzkammer"}
         elif memory == "2)":
-            newstate["position"] = "Handler"
+            return {**state, "position" : "Handler"}
         elif memory == "3)":
-            newstate["hp"] = 0
-    return newstate
-
-
+            return {**state, "hp": 0}
+        else:
+            return {**state}
 
 def room_schatzk(state):
-    newstate = state
     print("Du befindest dich in der SCHATZKAMMER."
         " Du musst nun gegen den Drachen kämpfen,"
         " indem du würfelst oder du gehst zurück.")
@@ -52,27 +51,31 @@ def room_schatzk(state):
             if ((randomint < 4 and not state["swordAvail"])
                     or (randomint == 6 and state["swordAvail"])):
                 print("Du hast den Drachen besiegt!")
-                newstate["dragonAlive"] = False
+                return {**state, "dragonAlive": False}
             else:
-                newstate["hp"] = state["hp"] - 1
+                return {**state, "hp": state["hp"] - 1}
         elif memory == "2)":
-            newstate["position"] = "Eingang"
+            return {**state, "position" : "Eingang"}
+        else:
+            return {**state}
     elif not state["dragonAlive"] and state["treasureAvail"]:
         memory = input("1) Schatz aufheben\n2) Zurück\n-- ")
         if memory == "1)":
             print("Schatz aufgehoben!")
-            newstate["treasureAvail"] = False
+            return {**state, "treasureAvail": False}
         elif memory == "2)":
-            newstate["position"] = "Eingang"
+            return {**state, "position" : "Eingang"}
+        else:
+            return {**state}
     elif not state["dragonAlive"] and not state["treasureAvail"]:
         if input("1) Zurück\n-- ") == "1)":
-            newstate["position"] = "Eingang"
-    return newstate
+            return {**state, "position" : "Eingang"}
+        else:
+            return {**state}
 
 
 
 def room_handler(state):
-    newstate = state
     print("Du befindest dich beim HÄNDLER.",
         " Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück"
         " gehen.")
@@ -81,15 +84,17 @@ def room_handler(state):
     if state["swordAvail"]:
         memory = input("1) Schwert Kaufen\n2) Zurück\n-- ")
         if memory == "1)":
-            newstate["swordAvail"] = False
-            newstate["hp"] = state["hp"] - 1  # Zusatzidee
+            return {**state, "swordAvail": False, "hp": state["hp"] - 1}
         elif memory == "2)":
-            newstate["position"] = "Eingang"
+            return {**state, "position" : "Eingang"}
+        else:
+            return {**state}
     else:
         memory = input("1) Zurück\n-- ")
         if memory == "1)":
-            newstate["position"] = "Eingang"
-    return newstate
+            return {**state, "position" : "Eingang"}
+        else:
+            return {**state}
 
 
 print("Um eine Richtung auszuwählen musst du lediglich die Zahl mit einer"
