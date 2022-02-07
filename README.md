@@ -120,7 +120,7 @@ gespeichert ist.
         
 ### Refactoring: Räume als Transformationsfunktionen
 
-Refactore das Spiel so, dass die Funktionalität der einzelnen Räume in Funktionen *gekapselt* ist, d.H.,
+Refactore das Spiel so, dass die Funktionalität der einzelnen Räume in Funktionen *gekapselt* ist, d.h.,
 aus
 
     # ...

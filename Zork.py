@@ -1,18 +1,12 @@
 from random import randint
 
 state = {
-    "hp" : 5,
-    "position" : "Eingang",
+    "hp": 5,
+    "position": "Eingang",
     "dragonAlive": True,
     "swordAvail": True,
-    "treasureAvail" : True
+    "treasureAvail": True
 }
-
-# hp = 5
-# position = "Eingang"
-# dragonAlive = True
-# swordAvail = True
-# treasureAvail = True
 
 
 def show_invetory():
@@ -22,9 +16,6 @@ def show_invetory():
 
 
 def room_eingang():
-    # global hp
-    # global position
-    # global treasureAvail
     print("Du befindest dich im EINGANG.",
         "Du kannst in die Schatzkammer oder zum Händler gehen.")
     show_invetory()
@@ -45,11 +36,6 @@ def room_eingang():
 
 
 def room_schatzk():
-    # global hp
-    # global position
-    # global dragonAlive
-    # global treasureAvail
-    # global swordAvail
     print("Du befindest dich in der SCHATZKAMMER."
         " Du musst nun gegen den Drachen kämpfen,"
         " indem du würfelst oder du gehst zurück.")
@@ -80,9 +66,6 @@ def room_schatzk():
 
 
 def room_handler():
-    # global hp
-    # global position
-    # global swordAvail
     print("Du befindest dich beim HÄNDLER.",
         " Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück"
         " gehen.")
@@ -104,7 +87,6 @@ def room_handler():
 print("Um eine Richtung auszuwählen musst du lediglich die Zahl mit einer"
     " Klammer schreiben: z.B. '1)'.")  # Zusatzidee
 
-print(len(state))
 
 while state["hp"] > 0:
     if state["position"] == "Eingang":
