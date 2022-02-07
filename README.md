@@ -99,19 +99,19 @@ erklären können
 
 1) warum dieser Code einen Fehler wirft:
 
-    value = 1
+        value = 1
     
-    def increase_value():
-        value = value + 1
-        print(value)
+        def increase_value():
+            value = value + 1
+            print(value)
 
 2) dieser Code wie erwartet funktioniert:
 
-    state = {"value": 1}
+         state = {"value": 1}
     
-    def increase_value():
-        state['value'] = state['value'] + 1
-        print(state['value'])
+         def increase_value():
+             state['value'] = state['value'] + 1
+             print(state['value'])
 
 ### Refactoring: Gamestate als Dictionary
 
@@ -125,7 +125,21 @@ aus
 
     # ...
     if state['position'] == 'Eingang':
+       print("Du stehst im Eingang")
+       choice = input()
+       if choice == '1':
+           # ...
 
+das hier wird:
+
+    if state['position'] == 'Eingang':
+        state = raum_eingang(state)
+        
+    # ...
+    
+    def raum_eingang(state):
+        print("Du stehst im Eingang")
+        # ...
 
 ## Hilfreiches
 
