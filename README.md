@@ -141,6 +141,28 @@ das hier wird:
         print("Du stehst im Eingang")
         # ...
 
+## Iteration 6
+
+### Speichern/Laden
+
+Der Spieler soll am Anfang die Möglichkeit bekommen, das Spiel zu laden:
+
+     Wilkommen.
+     
+     1) Neues Spiel
+     2) Spiel laden
+     
+wenn der Spieler das Spiel laden will, soll es aus einer Datei namens 'save.json' geladen werden.
+
+Der Spieler soll in jedem Zug die option bekommen, das spiel zu speichern:
+
+    1) Zum Drache gehen
+    2) Zum Händler gehen
+    S) Spiel speichern
+
+wird das spiel gespeichert, soll der Gamestate als json in eine Datei 'save.json' geschrieben werden,
+dass Spiel soll normal weiter gehen.
+
 ## Hilfreiches
 
 ### Gameloop
@@ -168,3 +190,68 @@ Eine Zufallszahl kann wie folgt erzeugt werden:
     from random import randint
     wuerfel = randint(1, 6)
 
+### Serialisierung/JSON
+
+JSON ist ein einfaches, menschen- und maschinenlesbares Format, um strukturiert Daten
+in Textform zu speichern.
+
+Beispiel:
+
+    {
+       "nichname": "Alice",
+       "hp" 50,
+       "inventar": [
+           {
+                "name": "diamond pickaxe",
+                "amount": 1,
+           },
+           {
+                "name": "cobblestone",
+                "amount" 64,
+           }
+       ]
+   }
+
+Python bietet deine (Bibliothek)[https://docs.python.org/3/library/json.html] dafür
+
+     import json
+     
+     # pythonstruktur aus String lesen
+     data = json.loads('{"name": "Alice"}')
+     print(data['name'])  # Alice
+
+     # pythonstruktur in String umwandelm
+     text = json.dumps({"name": "Alice"})
+     print(text)
+     
+### Dateien
+
+Dateien speichern Daten in einem Dateisystem, sie werden durch einen Pfad
+identifiziert (z.B. c:\Users\Alice\Desktop\README.txt).
+
+Betriebssysteme bieten die Möglichkeit, sie zu *öffnen*, und zu *schliessen*.
+Für eine geöffnete Datei erhält man ein *Filepointer*.
+
+    fp = open('datei.txt', 'r')  # 'r' -> zum lesen öffnen
+    fp.close()
+
+Mittels eines Filepointers kann man in die Datei schreiben...
+
+    fp = open('datei.txt', 'w')  # 'w' -> zum lesen öffnen
+    fp.write('Hallo, welt!')
+    fp.close()
+
+...und aus ihr lesen:
+
+    fp = open('datei.txt', 'r')
+    content = fp.read()
+    print(content)
+    fp.close()
+
+Als Bequemlichkeit, damit die Datei immer geschlossen wird, erlaubt python
+folgendes:
+
+    with open('datei.txt', 'r') as fp:
+        print(fp.read())
+
+    # merke: close erfolgt automatisch
