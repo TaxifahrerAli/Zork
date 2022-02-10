@@ -1,11 +1,12 @@
 from random import randint
+import json
 
 state = {
     "hp": 5,
-    "position": "Eingang",
+    "position": "Menue",
     "dragonAlive": True,
     "swordAvail": True,
-    "treasureAvail": True
+    "treasureAvail": True,
 }
 
 
@@ -15,28 +16,52 @@ def show_invetory():
         "Du hast den Schatz." if not state["treasureAvail"] else "")
 
 
+def spiel_menue(state):
+    memory = input("Spielmenü:\n1) Neues Spiel\n2) Spiel laden\n-- ")
+    with open("save.json","r") as fp:
+        newstate = json.loads("%s" %fp.read())
+    if "" != newstate:
+        if memory == "1)":
+            print("Spiel wird gestartet...") #Zusatzidee
+            position = "Eingang"
+            return {**state, "position" : "Eingang"}
+        elif memory == "2)":
+            return newstate
+    else:
+        if memory == "1)":
+            print("Spiel wird gestartet...") #Zusatzidee
+            position = "Eingang"
+            return {**state, "position" : "Eingang"}
+    return state
+
+
 def room_eingang(state):
     print("Du befindest dich im EINGANG.",
         "Du kannst in die Schatzkammer oder zum Händler gehen.")
     show_invetory()
     if state["treasureAvail"]:
-        memory = input("1) Schatzkammer\n2) Händler\n-- ")
+        memory = input("1) Schatzkammer\n2) Händler\nS) Speichern und Beenden\n-- ")
         if memory == "1)":
             return {**state, "position" : "Schatzkammer"}
         elif memory == "2)":
             return {**state, "position" : "Handler"}
-        else:
-            return {**state}
+        elif memory == "S)":
+            with open('save.json', 'w') as fp:
+                fp.write(json.dumps(state))
+            return {**state, "hp": 0}
     elif not state["treasureAvail"]:
-        memory = input("1) Schatzkammer\n2) Händler\n3) Beenden\n-- ")
+        memory = input("1) Schatzkammer\n2) Händler\n3) Beenden\nS) Speichern und Beenden\n-- ")
         if memory == "1)":
             return {**state, "position" : "Schatzkammer"}
         elif memory == "2)":
             return {**state, "position" : "Handler"}
         elif memory == "3)":
             return {**state, "hp": 0}
-        else:
-            return {**state}
+        elif memory == "S)":
+            with open('save.json', 'w') as fp:
+                fp.write(json.dumps(state))
+            return {**state, "hp": 0}
+    return state
 
 def room_schatzk(state):
     print("Du befindest dich in der SCHATZKAMMER."
@@ -56,8 +81,6 @@ def room_schatzk(state):
                 return {**state, "hp": state["hp"] - 1}
         elif memory == "2)":
             return {**state, "position" : "Eingang"}
-        else:
-            return {**state}
     elif not state["dragonAlive"] and state["treasureAvail"]:
         memory = input("1) Schatz aufheben\n2) Zurück\n-- ")
         if memory == "1)":
@@ -65,14 +88,10 @@ def room_schatzk(state):
             return {**state, "treasureAvail": False}
         elif memory == "2)":
             return {**state, "position" : "Eingang"}
-        else:
-            return {**state}
     elif not state["dragonAlive"] and not state["treasureAvail"]:
         if input("1) Zurück\n-- ") == "1)":
             return {**state, "position" : "Eingang"}
-        else:
-            return {**state}
-
+    return state
 
 
 def room_handler(state):
@@ -87,21 +106,18 @@ def room_handler(state):
             return {**state, "swordAvail": False, "hp": state["hp"] - 1}
         elif memory == "2)":
             return {**state, "position" : "Eingang"}
-        else:
-            return {**state}
     else:
         memory = input("1) Zurück\n-- ")
         if memory == "1)":
             return {**state, "position" : "Eingang"}
-        else:
-            return {**state}
+    return state
 
-
-print("Um eine Richtung auszuwählen musst du lediglich die Zahl mit einer"
-    " Klammer schreiben: z.B. '1)'.")  # Zusatzidee
 
 while state["hp"] > 0:
-    if state["position"] == "Eingang":
+    if state["position"] == "Menue":
+        state = spiel_menue(state)
+
+    elif state["position"] == "Eingang":
         state = room_eingang(state)
 
     elif state["position"] == "Schatzkammer":
