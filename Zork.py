@@ -17,16 +17,17 @@ def ask_user(obj):
         auswahlString = auswahlString + "%s)" % auswahlNummer + " %s\n" % value
         auswahlNummer = auswahlNummer + 1
     auswahlString = input(auswahlString + "-- ")
+
     x = 1
-    loop = True
-    while loop:
+    for key, value in obj.items():
         if auswahlString == "%d)" % x:
-            return list(obj)[x - 1]
-            loop = False
-        else:
-            return ask_user(obj)
-            loop = False
+            return key
         x += 1
+    
+    for i in range(50):
+        if auswahlString == "%d)" % i:
+            return list(obj)[i - 1]
+            i = 51
 
 
 def show_invetory():
