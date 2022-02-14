@@ -11,21 +11,20 @@ state = {
 
 
 def ask_user(obj):
-    string = ""
-    global zahl
-    zahl = 1
+    auswahlString = ""
+    auswahlNummer = 1
     for key, value in obj.items():
-        string = string + "%s)" % zahl + " %s\n" % value
-        zahl = zahl + 1
-    string = input(string + "-- ")
-    if string == "1)":
+        auswahlString = auswahlString + "%s)" % auswahlNummer + " %s\n" % value
+        auswahlNummer = auswahlNummer + 1
+    auswahlString = input(auswahlString + "-- ")
+    if auswahlString == "1)":
         return list(obj)[0]
-    elif string == "2)":
-        return list(obj)[0]
-    elif string == "3)":
-        return list(obj)[0]
-    elif string == "4)":
-        return list(obj)[0]
+    elif auswahlString == "2)":
+        return list(obj)[1]
+    elif auswahlString == "3)":
+        return list(obj)[2]
+    elif auswahlString == "4)":
+        return list(obj)[3]
     else:
         return ask_user(obj)
 
@@ -55,7 +54,7 @@ def spiel_menue(state):
             with open("save.json","r") as fp:
                 return json.loads("%s" %fp.read())
         except json.decoder.JSONDecodeError:
-            raise json.decoder.JSONDecodeError("Der Speicherstand hat keinen Inhalt.")
+            raise json.decoder.JSONDecodeError("Der Speicherstand hat keinen Inhalt.", "C:\projects\Zork\Zork.py")
     return state
 
 
@@ -129,13 +128,13 @@ def room_handler(state):
 
     if state["swordAvail"]:
         choice = ask_user({"schwertKaufen" : "Schwert kaufen", "zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "1)":
+        if choice == "schwertKaufen":
             return {**state, "swordAvail": False, "hp": state["hp"] - 1}
-        elif choice == "2)":
+        elif choice == "zurück":
             return {**state, "position" : "Eingang"}
     else:
         choice = ask_user({"zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "1)":
+        if choice == "zurück":
             return {**state, "position" : "Eingang"}
         else:
             return speichern(choice, state)
