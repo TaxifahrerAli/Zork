@@ -163,6 +163,34 @@ Der Spieler soll in jedem Zug die option bekommen, das spiel zu speichern:
 wird das spiel gespeichert, soll der Gamestate als json in eine Datei 'save.json' geschrieben werden,
 dass Spiel soll normal weiter gehen.
 
+## Iteration 7
+
+### Abfragen als Daten
+
+Schreibe eine Funktion, die wie folgt aufgerufen werden kann:
+
+    choice = ask_user({'eingang': 'Zur Eingangshalle gehen', 'schatzkammer': 'Zur Schatzkammer gehen'})
+    
+Die Funktion soll dem User die Werte des Dictionaries durchnummeriert als Wahlmöglichkeiten präsentieren,
+also fürs obengenannte Beispiel
+
+    1) Zur Eingangshalle gehen
+    2) Zur Schatzkammer gehen
+
+Gibt der User die Zahl einer Option an, soll *der Key* der Option zurückgegeben werden.
+Gibt der User etwas ungültiges (i.e. keine Zahl, oder eine Zahl ausserhalb der Liste), soll er erneut gefragt werden.
+
+Refactore den Code so, dass du die Funktion an allen stellen nutzt, wo du den User nach eingaben Fragst.
+Es ist ok, wenn die Zahlen der Optionen nicht mehr die gleichen sind, wie vorher.
+Es ist ok, wenn Speichern nicht per S ausgewählt wird.
+
+Hinweis: per `dict.items` erhält man eine Liste, aller key/value-Päärchen des Dictionaries, d.H. folgender Code
+listet alle Keys und Values eines Dictionaries auf.
+
+    x = {'a': 'Alice', 'b': 'Bob'}
+    for key, value in x.items():
+        print("Der Key ist %s, der Value ist %s" % (key, value))
+
 ## Hilfreiches
 
 ### Gameloop
