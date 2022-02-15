@@ -17,17 +17,12 @@ def ask_user(obj):
         auswahlString = auswahlString + "%s)" % auswahlNummer + " %s\n" % value
         auswahlNummer = auswahlNummer + 1
     auswahlString = input(auswahlString + "-- ")
-
-    x = 1
+    auswahlNummer = 1
     for key, value in obj.items():
-        if auswahlString == "%d)" % x:
+        if auswahlString == "%d" % auswahlNummer:
             return key
-        x += 1
-    
-    for i in range(50):
-        if auswahlString == "%d)" % i:
-            return list(obj)[i - 1]
-            i = 51
+        auswahlNummer  += 1
+    ask_user(obj)
 
 
 def show_invetory():
@@ -46,6 +41,8 @@ def speichern(choice, state):
 
 
 def spiel_menue(state):
+    class SpeichernFehler(Exception):
+        pass
     choice = ask_user({"neuesSpiel" : "Neues Spiel", "spielLaden" : "Spiel laden"})
     if choice == "neuesSpiel":
         print("Spiel wird gestartet...") #Zusatzidee
@@ -55,7 +52,7 @@ def spiel_menue(state):
             with open("save.json","r") as fp:
                 return json.loads("%s" %fp.read())
         except json.decoder.JSONDecodeError:
-            raise json.decoder.JSONDecodeError("Der Speicherstand hat keinen Inhalt.", "C:\projects\Zork\Zork.py")
+            raise SpeichernFehler("Der Speicherstand hat keinen Inhalt.")
     return state
 
 
@@ -123,14 +120,14 @@ def room_schatzk(state):
 
 def room_handler(state):
     print("Du befindest dich beim HÄNDLER.",
-        " Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück"
+        "Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück"
         " gehen.")
     show_invetory()
 
     if state["swordAvail"]:
         choice = ask_user({"schwertKaufen" : "Schwert kaufen", "zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
         if choice == "schwertKaufen":
-            return {**state, "swordAvail": False, "hp": state["hp"] - 1}
+            return {**state, "swordAvail": False}
         elif choice == "zurück":
             return {**state, "position" : "Eingang"}
     else:
