@@ -21,7 +21,7 @@ def ask_user(obj):
     for key, value in obj.items():
         if auswahlString == "%d" % auswahlNummer:
             return key
-        auswahlNummer  += 1
+        auswahlNummer += 1
     ask_user(obj)
 
 
@@ -31,7 +31,7 @@ def show_invetory():
         "Du hast den Schatz." if not state["treasureAvail"] else "")
 
 
-def speichern(choice, state):
+def save_game(choice, state):
     if choice == "speichernBeenden":
         with open('save.json', 'w') as fp:
             fp.write(json.dumps(state))
@@ -60,24 +60,24 @@ def room_eingang(state):
     print("Du befindest dich im EINGANG.",
         "Du kannst in die Schatzkammer oder zum Händler gehen.")
     show_invetory()
-    if state["treasureAvail"]:
-        choice = ask_user({"schatzkammer" : "Schatzkammer", "handler" : "Händler", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "schatzkammer":
-            return {**state, "position" : "Schatzkammer"}
-        elif choice == "handler":
-            return {**state, "position" : "Handler"}
-        else:
-            return speichern(choice, state)
-    elif not state["treasureAvail"]:
-        choice = ask_user({"schatzkammer" : "Schatzkammer", "handler" : "Händler", "beenden" : "Beenden", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "schatzkammer":
-            return {**state, "position" : "Schatzkammer"}
-        elif choice == "handler":
-            return {**state, "position" : "Handler"}
-        elif choice == "beenden":
-            return {**state, "hp": 0}
-        else:
-            return speichern(choice, state)
+    choices = {
+        "schatzkammer" : "Schatzkammer",
+        "handler" : "Händler",
+        "speichernBeenden" : "Speichern und Beenden"
+    }
+    if not state["treasureAvail"]:
+        choices["beenden"] = "Beenden"
+
+    choice = ask_user(choices)
+    if choice == "schatzkammer":
+        return {**state, "position" : "Schatzkammer"}
+    elif choice == "handler":
+        return {**state, "position" : "Handler"}
+    elif choice == "beenden":
+        return {**state, "hp": 0}
+    else:
+        return save_game(choice, state)
+
     return state
 
 
@@ -100,7 +100,7 @@ def room_schatzk(state):
         elif choice == "zurück":
             return {**state, "position" : "Eingang"}
         else:
-            return speichern(choice, state)
+            return save_game(choice, state)
     elif not state["dragonAlive"] and state["treasureAvail"]:
         choice = ask_user({"schatzAufheben" : "Schatz aufheben", "zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
         if choice == "schatzAufheben":
@@ -109,13 +109,13 @@ def room_schatzk(state):
         elif choice == "zurück":
             return {**state, "position" : "Eingang"}
         else:
-            return speichern(choice, state)
+            return save_game(choice, state)
     elif not state["dragonAlive"] and not state["treasureAvail"]:
         choice = ask_user({"zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
         if choice == "zurück":
             return {**state, "position" : "Eingang"}
         else:
-            return speichern(choice, state)
+            return save_game(choice, state)
     return state
 
 
@@ -124,19 +124,22 @@ def room_handler(state):
         "Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück"
         " gehen.")
     show_invetory()
+    choices = {
+        "schwertKaufen" : "Schwert kaufen",
+        "zurück" : "Zurück",
+        "speichernBeenden" : "Speichern und Beenden"
+    }
+    if not state["swordAvail"]:
+        del choices["schwertKaufen"]
+    choice = ask_user(choices)
 
-    if state["swordAvail"]:
-        choice = ask_user({"schwertKaufen" : "Schwert kaufen", "zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "schwertKaufen":
-            return {**state, "swordAvail": False}
-        elif choice == "zurück":
-            return {**state, "position" : "Eingang"}
-    else:
-        choice = ask_user({"zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "zurück":
-            return {**state, "position" : "Eingang"}
-        else:
-            return speichern(choice, state)
+    if choice == "schwertKaufen":
+        return {**state, "swordAvail": False}
+    elif choice == "zurück":
+        return {**state, "position" : "Eingang"}
+    elif choice == "speichernBeenden":
+        return save_game(choice, state)
+
     return state
 
 
