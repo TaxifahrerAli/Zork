@@ -86,36 +86,37 @@ def room_schatzk(state):
         " Du musst nun gegen den Drachen kämpfen,"
         " indem du würfelst oder du gehst zurück.")
     show_invetory()
-
+    choices = {
+        "schatzAufheben" : "Schatz aufheben",
+        "drachenBekampfen" : "Drachen bekämpfen",
+        "zurück" : "Zurück",
+        "speichernBeenden" : "Speichern und Beenden"
+    }
     if state["dragonAlive"]:
-        choice = ask_user({"drachenBekampfen" : "Drachen bekämpfen", "zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "drachenBekampfen":
-            randomint = randint(1, 6)
-            if ((randomint < 4 and not state["swordAvail"])
-                    or (randomint == 6 and state["swordAvail"])):
-                print("Du hast den Drachen besiegt!")
-                return {**state, "dragonAlive": False}
-            else:
-                return {**state, "hp": state["hp"] - 1}
-        elif choice == "zurück":
-            return {**state, "position" : "Eingang"}
-        else:
-            return save_game(choice, state)
+        del choices["schatzAufheben"]
     elif not state["dragonAlive"] and state["treasureAvail"]:
-        choice = ask_user({"schatzAufheben" : "Schatz aufheben", "zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "schatzAufheben":
-            print("Schatz aufgehoben!")
-            return {**state, "treasureAvail": False}
-        elif choice == "zurück":
-            return {**state, "position" : "Eingang"}
-        else:
-            return save_game(choice, state)
+        del choices["drachenBekampfen"]
     elif not state["dragonAlive"] and not state["treasureAvail"]:
-        choice = ask_user({"zurück" : "Zurück", "speichernBeenden" : "Speichern und Beenden"})
-        if choice == "zurück":
-            return {**state, "position" : "Eingang"}
+        del choices["drachenBekampfen"]
+        del choices["schatzAufheben"]
+    choice = ask_user(choices)
+
+    if choice == "drachenBekampfen":
+        randomint = randint(1, 6)
+        if ((randomint < 4 and not state["swordAvail"])
+                or (randomint == 6 and state["swordAvail"])):
+            print("Du hast den Drachen besiegt!")
+            return {**state, "dragonAlive": False}
         else:
-            return save_game(choice, state)
+            return {**state, "hp": state["hp"] - 1}
+    elif choice == "schatzAufheben":
+        print("Schatz aufgehoben!")
+        return {**state, "treasureAvail": False}
+    elif choice == "zurück":
+        return {**state, "position" : "Eingang"}
+    elif choice == "speichernBeenden":
+        return save_game(choice, state)
+        
     return state
 
 
