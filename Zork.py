@@ -14,9 +14,9 @@ def ask_user(obj):
     auswahlString = ""
     auswahlNummer = 1
     for key, value in obj.items():
-        auswahlString = auswahlString + "%s)" % auswahlNummer + " %s\n" % value
+        print("%s) %s" % (auswahlNummer,value))
         auswahlNummer = auswahlNummer + 1
-    auswahlString = input(auswahlString + "-- ")
+    auswahlString = input("-- ")
     auswahlNummer = 1
     for key, value in obj.items():
         if auswahlString == "%d" % auswahlNummer:
@@ -79,6 +79,7 @@ def room_eingang(state):
         else:
             return speichern(choice, state)
     return state
+
 
 def room_schatzk(state):
     print("Du befindest dich in der SCHATZKAMMER."
