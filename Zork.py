@@ -22,7 +22,7 @@ def ask_user(obj):
         if auswahlString == "%d" % auswahlNummer:
             return key
         auswahlNummer += 1
-    ask_user(obj)
+    return ask_user(obj)
 
 
 def show_invetory():
@@ -43,7 +43,7 @@ def save_game(choice, state):
 def spiel_menue(state):
     class SpeichernFehler(Exception):
         pass
-    choice = ask_user({"neuesSpiel" : "Neues Spiel", "spielLaden" : "Spiel laden"})
+    choice = ask_user({"neuesSpiel": "Neues Spiel", "spielLaden": "Spiel laden"})
     if choice == "neuesSpiel":
         print("Spiel wird gestartet...") #Zusatzidee
         return {**state, "position" : "Eingang"}
@@ -61,18 +61,18 @@ def room_eingang(state):
         "Du kannst in die Schatzkammer oder zum Händler gehen.")
     show_invetory()
     choices = {
-        "schatzkammer" : "Schatzkammer",
-        "handler" : "Händler",
-        "speichernBeenden" : "Speichern und Beenden"
+        "schatzkammer": "Schatzkammer",
+        "handler": "Händler",
+        "speichernBeenden": "Speichern und Beenden"
     }
     if not state["treasureAvail"]:
         choices["beenden"] = "Beenden"
 
     choice = ask_user(choices)
     if choice == "schatzkammer":
-        return {**state, "position" : "Schatzkammer"}
+        return {**state, "position": "Schatzkammer"}
     elif choice == "handler":
-        return {**state, "position" : "Handler"}
+        return {**state, "position": "Handler"}
     elif choice == "beenden":
         return {**state, "hp": 0}
     else:
@@ -87,10 +87,10 @@ def room_schatzk(state):
         " indem du würfelst oder du gehst zurück.")
     show_invetory()
     choices = {
-        "schatzAufheben" : "Schatz aufheben",
-        "drachenBekampfen" : "Drachen bekämpfen",
-        "zurück" : "Zurück",
-        "speichernBeenden" : "Speichern und Beenden"
+        "schatzAufheben": "Schatz aufheben",
+        "drachenBekampfen": "Drachen bekämpfen",
+        "zurück": "Zurück",
+        "speichernBeenden": "Speichern und Beenden"
     }
     if state["dragonAlive"]:
         del choices["schatzAufheben"]
@@ -113,10 +113,10 @@ def room_schatzk(state):
         print("Schatz aufgehoben!")
         return {**state, "treasureAvail": False}
     elif choice == "zurück":
-        return {**state, "position" : "Eingang"}
+        return {**state, "position": "Eingang"}
     elif choice == "speichernBeenden":
         return save_game(choice, state)
-        
+
     return state
 
 
