@@ -1,6 +1,7 @@
 from flask import Flask, request
 from random import randint
 import json
+from random import randint
 
 
 app = Flask(__name__)
@@ -27,173 +28,119 @@ app = Flask(__name__)
 @app.route("/zork",methods=["GET","POST"])
 def zork_main():
 
-    user_eingabe = request.form.get('action')
-    
-    global anfang
-    anfang = ""
 
-    state = {
-        "hp": 5,
-        "position": "Menue",
-        "dragonAlive": True,
-        "swordAvail": True,
-        "treasureAvail": True,
-    }
-
-
-    def ask_user(obj):
-        auswahlString = ""
-        auswahlNummer = 1
-        global abfrage
-        abfrage = ""
-        for key, value in obj.items():
-            abfrage += "%s) %s<br>" % (auswahlNummer,value)
-            auswahlNummer = auswahlNummer + 1
-        auswahlString = user_eingabe
-        auswahlNummer = 1
-        for key, value in obj.items():
-            if auswahlString == "%d" % auswahlNummer:
-                return key
-            auswahlNummer += 1
-        # return ask_user(obj)
-
-
-    def show_invetory():
-        print("Du hast %d Lebenspunkte." % state["hp"],
-            "Du hast ein Schwert." if not state["swordAvail"] else "",
-            "Du hast den Schatz." if not state["treasureAvail"] else "")
-
-
-    def save_game(choice, state):
-        if choice == "speichernBeenden":
-            with open('save.json', 'w') as fp:
-                fp.write(json.dumps(state))
-            return {**state, "hp": 0}
-        else:
-            return state
-
-
-    def spiel_menue(state):
-        class SpeichernFehler(Exception):
-            pass
-        choice = ask_user({"neuesSpiel": "Neues Spiel", "spielLaden": "Spiel laden"})
-        if choice == "neuesSpiel":
-            return {**state, "position" : "Eingang"}
-        elif choice == "spielLaden":
-            try:
-                with open("save.json","r") as fp:
-                    return json.loads("%s" %fp.read())
-            except json.decoder.JSONDecodeError:
-                raise SpeichernFehler("Der Speicherstand hat keinen Inhalt.")
-        return state
-
-
-    def room_eingang(state):
-        anfang = ("Du befindest dich im EINGANG.",
-            "Du kannst in die Schatzkammer oder zum Händler gehen.")
-        show_invetory()
-        choices = {
-            "schatzkammer": "Schatzkammer",
-            "handler": "Händler",
-            "speichernBeenden": "Speichern und Beenden"
+    # === Spielstand berechnen === 
+    try:
+        with open("save.json","r") as fp:
+            state = json.loads(fp.read())
+    except:
+        state = {
+            "hp": 5,
+            "position": "Eingang",
+            "dragonAlive": True,
+            "swordAvail": True,
+            "treasureAvail": True,
         }
-        if not state["treasureAvail"]:
-            choices["beenden"] = "Beenden"
+    def make_invetory():
+        nachricht ="Du hast %s Lebenspunkte. "% state["hp"]
+        nachricht +="Du hast den Schatz. " if not state["treasureAvail"] else ""
+        nachricht +="Du hast ein Schwert." if not state["swordAvail"] else ""
+        return nachricht
 
-        choice = ask_user(choices)
-        if choice == "schatzkammer":
-            return {**state, "position": "Schatzkammer"}
-        elif choice == "handler":
-            return {**state, "position": "Handler"}
-        elif choice == "beenden":
-            return {**state, "hp": 0}
-        else:
-            return save_game(choice, state)
+    choice = request.form.get('choice')
 
-        return state
-
-
-    def room_schatzk(state):
-        anfang = ("Du befindest dich in der SCHATZKAMMER."
-            " Du musst nun gegen den Drachen kämpfen,"
-            " indem du würfelst oder du gehst zurück.")
-        show_invetory()
-        choices = {
-            "schatzAufheben": "Schatz aufheben",
-            "drachenBekampfen": "Drachen bekämpfen",
-            "zurück": "Zurück",
-            "speichernBeenden": "Speichern und Beenden"
-        }
-        if state["dragonAlive"]:
-            del choices["schatzAufheben"]
-        elif not state["dragonAlive"] and state["treasureAvail"]:
-            del choices["drachenBekampfen"]
-        elif not state["dragonAlive"] and not state["treasureAvail"]:
-            del choices["drachenBekampfen"]
-            del choices["schatzAufheben"]
-        choice = ask_user(choices)
-
-        if choice == "drachenBekampfen":
+    if state["position"] == "Eingang":
+        if choice == "position1":
+            state = {**state, "position": "Schatzkammer"}
+        elif choice == "position2":
+            state = {**state, "position": "Handler"}
+    elif state["position"] == "Schatzkammer":
+        if choice == "position":
+            state = {**state, "position": "Eingang"}
+        elif choice == "drachenBekämpfen" and state["hp"] > 0:
             randomint = randint(1, 6)
             if ((randomint < 4 and not state["swordAvail"])
                     or (randomint == 6 and state["swordAvail"])):
-                print("Du hast den Drachen besiegt!")
-                return {**state, "dragonAlive": False}
+                state = {**state, "dragonAlive": False, "treasureAvail": True}
             else:
-                return {**state, "hp": state["hp"] - 1}
+                state = {**state, "hp": state["hp"] - 1}
         elif choice == "schatzAufheben":
-            print("Schatz aufgehoben!")
-            return {**state, "treasureAvail": False}
-        elif choice == "zurück":
-            return {**state, "position": "Eingang"}
-        elif choice == "speichernBeenden":
-            return save_game(choice, state)
-
-        return state
-
-
-    def room_handler(state):
-        anfang = ("Du befindest dich beim HÄNDLER.",
-            "Du kannst ein Schwert für einen Lebenspunkt kaufen oder zurück"
-            " gehen.")
-        show_invetory()
-        choices = {
-            "schwertKaufen" : "Schwert kaufen",
-            "zurück" : "Zurück",
-            "speichernBeenden" : "Speichern und Beenden"
-        }
-        if not state["swordAvail"]:
-            del choices["schwertKaufen"]
-        choice = ask_user(choices)
-
-        if choice == "schwertKaufen":
-            return {**state, "swordAvail": False}
-        elif choice == "zurück":
-            return {**state, "position" : "Eingang"}
-        elif choice == "speichernBeenden":
-            return save_game(choice, state)
-
-        return state
-
-
-    if state["position"] == "Menue":
-        state = spiel_menue(state)
-
-    elif state["position"] == "Eingang":
-        state = room_eingang(state)
-
-    elif state["position"] == "Schatzkammer":
-        state = room_schatzk(state)
-
+            state = {**state, "treasureAvail": False}
     elif state["position"] == "Handler":
-        state = room_handler(state)
+        if choice == "position":
+            state = {**state, "position": "Eingang"}
+        elif choice == "schwertKaufen":
+            state = {**state, "swordAvail": False}
 
+
+    # === Ausgabe berechnen ===
+    if state["position"] == "Eingang":
+        positionsnachricht = "Du bist im Eingang."
+        optionen = {
+            "position1": "In die Schatzkammer gehen",
+            "position2": "Zum Händler gehen",
+        }
+    elif state["position"] == "Schatzkammer":
+        positionsnachricht = "Du bist in der Schatzkammer."
+        hpnachricht = "Du hast %s Lebenspunkte."% state["hp"]
+        schatznachricht = "Du hast den Schatz." if not state["treasureAvail"] else ""
+        schwertnachricht = "Du hast ein Schwert." if not state["swordAvail"] else ""
+        if state["dragonAlive"]:
+            optionen = {
+                "position": "In den Eingang gehen",
+                "drachenBekämpfen": "Drachen bekämpfen"
+            }
+        elif not state["dragonAlive"] and state["treasureAvail"]:
+            optionen = {
+                "position": "In den Eingang gehen",
+                "schatzAufheben": "Schatz aufheben"
+            }
+        elif not state["treasureAvail"] and not state["dragonAlive"]:
+            optionen = {
+                "position": "In den Eingang gehen"
+            }
+    elif state["position"] == "Handler":
+        positionsnachricht = "Du bist beim Händler."
+        hpnachricht = "Du hast %s Lebenspunkte."% state["hp"]
+        schatznachricht = "Du hast den Schatz." if not state["treasureAvail"] else ""
+        schwertnachricht = "Du hast ein Schwert." if not state["swordAvail"] else ""
+        if state["swordAvail"]:
+            optionen = {
+                "position": "In den Eingang gehen",
+                "schwertKaufen": "Schwert kaufen"
+            }
+        else:
+            optionen = {
+                "position": "In den Eingang gehen"
+            }
+    optionsnachricht = "<ol>"
+    for key, value in optionen.items():
+        optionsnachricht += (
+            """<li>
+                    <label>
+                        %s
+                        <input 
+                            type='radio'
+                            name='choice'
+                            value= %s
+                        >
+                    </label>
+                </li>
+            """ % (value, key)
+        )
+    optionsnachricht += "</ol>"
+
+
+    # === Spielstand (vorläufig) in der json speichern ===
+    with open('save.json', 'w') as fp:
+        fp.write(json.dumps(state))
+
+    # === Spielstand wiedergeben ===
     return """
         <h4>Zork</h4>
-        <p>%s</p>
-        <p>%s</p>
+        <p>%s %s</p>
         <form action="/zork" method="POST">
-            <input name="action">
+            %s
             <button type="submit">OK</button>
         </form
-    """ % (anfang,abfrage)
+    """ % (positionsnachricht, make_invetory(), optionsnachricht)
