@@ -28,91 +28,127 @@ app = Flask(__name__)
 @app.route("/zork",methods=["GET","POST"])
 def zork_main():
 
-
-    # === Spielstand berechnen === 
+    # === Spielstand laden === 
     try:
         with open("save.json","r") as fp:
             state = json.loads(fp.read())
     except:
         state = {
             "hp": 5,
-            "position": "Eingang",
+            "position": "Menue",
             "dragonAlive": True,
             "swordAvail": True,
             "treasureAvail": True,
         }
-    def make_invetory():
-        nachricht ="Du hast %s Lebenspunkte. "% state["hp"]
-        nachricht +="Du hast den Schatz. " if not state["treasureAvail"] else ""
-        nachricht +="Du hast ein Schwert." if not state["swordAvail"] else ""
-        return nachricht
 
+    #=== Inventar machen ===
+    def make_invetory(state):
+        if state["position"] != "Menue":
+            nachricht ="Du hast %s Lebenspunkte. "% state["hp"]
+            nachricht +="Du hast den Schatz. " if not state["treasureAvail"] else ""
+            nachricht +="Du hast ein Schwert." if not state["swordAvail"] else ""
+            return nachricht
+        else:
+            return ""
+
+    #=== Wahl abspeichern
     choice = request.form.get('choice')
 
-    if state["position"] == "Eingang":
-        if choice == "position1":
-            state = {**state, "position": "Schatzkammer"}
-        elif choice == "position2":
-            state = {**state, "position": "Handler"}
-    elif state["position"] == "Schatzkammer":
-        if choice == "position":
-            state = {**state, "position": "Eingang"}
-        elif choice == "drachenBekämpfen" and state["hp"] > 0:
-            randomint = randint(1, 6)
-            if ((randomint < 4 and not state["swordAvail"])
-                    or (randomint == 6 and state["swordAvail"])):
-                state = {**state, "dragonAlive": False, "treasureAvail": True}
-            else:
-                state = {**state, "hp": state["hp"] - 1}
-        elif choice == "schatzAufheben":
-            state = {**state, "treasureAvail": False}
-    elif state["position"] == "Handler":
-        if choice == "position":
-            state = {**state, "position": "Eingang"}
-        elif choice == "schwertKaufen":
-            state = {**state, "swordAvail": False}
-
-
-    # === Ausgabe berechnen ===
-    if state["position"] == "Eingang":
-        positionsnachricht = "Du bist im Eingang."
-        optionen = {
-            "position1": "In die Schatzkammer gehen",
-            "position2": "Zum Händler gehen",
-        }
-    elif state["position"] == "Schatzkammer":
-        positionsnachricht = "Du bist in der Schatzkammer."
-        hpnachricht = "Du hast %s Lebenspunkte."% state["hp"]
-        schatznachricht = "Du hast den Schatz." if not state["treasureAvail"] else ""
-        schwertnachricht = "Du hast ein Schwert." if not state["swordAvail"] else ""
-        if state["dragonAlive"]:
-            optionen = {
-                "position": "In den Eingang gehen",
-                "drachenBekämpfen": "Drachen bekämpfen"
-            }
-        elif not state["dragonAlive"] and state["treasureAvail"]:
-            optionen = {
-                "position": "In den Eingang gehen",
-                "schatzAufheben": "Schatz aufheben"
-            }
-        elif not state["treasureAvail"] and not state["dragonAlive"]:
-            optionen = {
-                "position": "In den Eingang gehen"
-            }
-    elif state["position"] == "Handler":
-        positionsnachricht = "Du bist beim Händler."
-        hpnachricht = "Du hast %s Lebenspunkte."% state["hp"]
-        schatznachricht = "Du hast den Schatz." if not state["treasureAvail"] else ""
-        schwertnachricht = "Du hast ein Schwert." if not state["swordAvail"] else ""
-        if state["swordAvail"]:
-            optionen = {
-                "position": "In den Eingang gehen",
-                "schwertKaufen": "Schwert kaufen"
-            }
+    #=== Optionen verarbeiten ===
+    def optionen_verarbeiten(state):
+        if state["hp"] > 0:
+            if state["position"] == "Eingang" and state["hp"] > 0:
+                if choice == "position1":
+                    state = {**state, "position": "Schatzkammer"}
+                elif choice == "position2":
+                    state = {**state, "position": "Handler"}
+                elif choice == "beenden":
+                    state = {**state, "position": "Menue"}
+            elif state["position"] == "Schatzkammer" and state["hp"] > 0:
+                if choice == "position":
+                    state = {**state, "position": "Eingang"}
+                elif choice == "drachenBekämpfen" and state["hp"] > 0:
+                    randomint = randint(1, 6)
+                    if ((randomint < 4 and not state["swordAvail"])
+                            or (randomint == 6 and state["swordAvail"])):
+                        state = {**state, "dragonAlive": False, "treasureAvail": True}
+                    else:
+                        state = {**state, "hp": state["hp"] - 1}
+                elif choice == "schatzAufheben":
+                    state = {**state, "treasureAvail": False}
+            elif state["position"] == "Handler" and state["hp"] > 0:
+                if choice == "position":
+                    state = {**state, "position": "Eingang"}
+                elif choice == "schwertKaufen":
+                    state = {**state, "swordAvail": False}
+            elif state["position"] == "Menue": # -- Zusatzidee: Möglichkeit, im Menü neues Spiel zu starten --
+                if choice == "neuesSpiel":
+                    state = {
+                        "hp": 5,
+                        "position": "Eingang",
+                        "dragonAlive": True,
+                        "swordAvail": True,
+                        "treasureAvail": True,
+                    }
         else:
+            state = {**state, "position": "Menue"}
+        return state
+
+
+    state = optionen_verarbeiten(state)
+
+    # === Optionen erörtern ===
+    def optionen_erörtern(state):
+        if state["position"] == "Eingang":
             optionen = {
-                "position": "In den Eingang gehen"
+                "position1": "In die Schatzkammer gehen",
+                "position2": "Zum Händler gehen",
             }
+            if state["treasureAvail"] == False:
+                optionen = {**optionen, "beenden": "Spiel beenden"}
+        elif state["position"] == "Schatzkammer":
+            if state["dragonAlive"]:
+                optionen = {
+                    "position": "In den Eingang gehen",
+                    "drachenBekämpfen": "Drachen bekämpfen"
+                }
+            elif not state["dragonAlive"] and state["treasureAvail"]:
+                optionen = {
+                    "position": "In den Eingang gehen",
+                    "schatzAufheben": "Schatz aufheben"
+                }
+            elif not state["treasureAvail"] and not state["dragonAlive"]:
+                optionen = {
+                    "position": "In den Eingang gehen"
+                }
+        elif state["position"] == "Handler":
+            if state["swordAvail"]:
+                optionen = {
+                    "position": "In den Eingang gehen",
+                    "schwertKaufen": "Schwert kaufen"
+                }
+            else:
+                optionen = {
+                    "position": "In den Eingang gehen"
+                }
+        elif state["position"] == "Menue":
+            optionen = {
+                "neuesSpiel": "Neues Spiel starten"
+            }
+        return optionen
+
+
+    optionen = optionen_erörtern(state)
+
+
+    # === Position wiedergeben ===
+    def position(state):
+        if state["position"] != "Menue":
+            return "Deine Position lautet %s." % state["position"]
+        else:
+            return "Du bist im Menü"
+
+    #=== HTML erschaffen ===
     optionsnachricht = "<ol>"
     for key, value in optionen.items():
         optionsnachricht += (
@@ -143,4 +179,4 @@ def zork_main():
             %s
             <button type="submit">OK</button>
         </form
-    """ % (positionsnachricht, make_invetory(), optionsnachricht)
+    """ % (position(state), make_invetory(state), optionsnachricht)

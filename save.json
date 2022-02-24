@@ -1,1 +1,1 @@
-{"hp": 5, "position": "Eingang", "dragonAlive": false, "swordAvail": false, "treasureAvail": false}
+{"hp": 5, "position": "Eingang", "dragonAlive": true, "swordAvail": true, "treasureAvail": true}
