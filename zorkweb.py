@@ -53,45 +53,43 @@ def zork_main():
 
     #=== Wahl abspeichern
     choice = request.form.get('choice')
+    print(choice)
 
     #=== Optionen verarbeiten ===
     def optionen_verarbeiten(state):
-        if state["hp"] > 0:
-            if state["position"] == "Eingang" and state["hp"] > 0:
-                if choice == "position1":
-                    state = {**state, "position": "Schatzkammer"}
-                elif choice == "position2":
-                    state = {**state, "position": "Handler"}
-                elif choice == "beenden":
-                    state = {**state, "position": "Menue"}
-            elif state["position"] == "Schatzkammer" and state["hp"] > 0:
-                if choice == "position":
-                    state = {**state, "position": "Eingang"}
-                elif choice == "drachenBekämpfen" and state["hp"] > 0:
-                    randomint = randint(1, 6)
-                    if ((randomint < 4 and not state["swordAvail"])
-                            or (randomint == 6 and state["swordAvail"])):
-                        state = {**state, "dragonAlive": False, "treasureAvail": True}
-                    else:
-                        state = {**state, "hp": state["hp"] - 1}
-                elif choice == "schatzAufheben":
-                    state = {**state, "treasureAvail": False}
-            elif state["position"] == "Handler" and state["hp"] > 0:
-                if choice == "position":
-                    state = {**state, "position": "Eingang"}
-                elif choice == "schwertKaufen":
-                    state = {**state, "swordAvail": False}
-            elif state["position"] == "Menue": # -- Zusatzidee: Möglichkeit, im Menü neues Spiel zu starten --
-                if choice == "neuesSpiel":
-                    state = {
-                        "hp": 5,
-                        "position": "Eingang",
-                        "dragonAlive": True,
-                        "swordAvail": True,
-                        "treasureAvail": True,
-                    }
-        else:
-            state = {**state, "position": "Menue"}
+        if state["position"] == "Eingang" and state["hp"] > 0:
+            if choice == "position1":
+                state = {**state, "position": "Schatzkammer"}
+            elif choice == "position2":
+                state = {**state, "position": "Handler"}
+            elif choice == "beenden":
+                state = {**state, "position": "Menue"}
+        elif state["position"] == "Schatzkammer" and state["hp"] > 0:
+            if choice == "position":
+                state = {**state, "position": "Eingang"}
+            elif choice == "drachenBekämpfen":
+                randomint = randint(1, 6)
+                if ((randomint < 4 and not state["swordAvail"])
+                        or (randomint == 6 and state["swordAvail"])):
+                    state = {**state, "dragonAlive": False, "treasureAvail": True}
+                else:
+                    state = {**state, "hp": state["hp"] - 1}
+            elif choice == "schatzAufheben":
+                state = {**state, "treasureAvail": False}
+        elif state["position"] == "Handler" and state["hp"] > 0:
+            if choice == "position":
+                state = {**state, "position": "Eingang"}
+            elif choice == "schwertKaufen":
+                state = {**state, "swordAvail": False}
+        elif state["position"] == "Menue": # -- Zusatzidee: Möglichkeit, im Menü neues Spiel zu starten --
+            if choice == "neuesSpiel":
+                state = {
+                    "hp": 5,
+                    "position": "Eingang",
+                    "dragonAlive": True,
+                    "swordAvail": True,
+                    "treasureAvail": True
+                }
         return state
 
 
@@ -104,37 +102,20 @@ def zork_main():
                 "position1": "In die Schatzkammer gehen",
                 "position2": "Zum Händler gehen",
             }
-            if state["treasureAvail"] == False:
+            if not state["treasureAvail"]:
                 optionen = {**optionen, "beenden": "Spiel beenden"}
         elif state["position"] == "Schatzkammer":
+            optionen = {"position" : "In den Eingang gehen"}
             if state["dragonAlive"]:
-                optionen = {
-                    "position": "In den Eingang gehen",
-                    "drachenBekämpfen": "Drachen bekämpfen"
-                }
+                optionen = {**optionen, "drachenBekämpfen": "Drachen bekämpfen"}
             elif not state["dragonAlive"] and state["treasureAvail"]:
-                optionen = {
-                    "position": "In den Eingang gehen",
-                    "schatzAufheben": "Schatz aufheben"
-                }
-            elif not state["treasureAvail"] and not state["dragonAlive"]:
-                optionen = {
-                    "position": "In den Eingang gehen"
-                }
+                optionen = {**optionen, "schatzAufheben": "Schatz aufheben"}
         elif state["position"] == "Handler":
+            optionen = {"position" : "In den Eingang gehen"}
             if state["swordAvail"]:
-                optionen = {
-                    "position": "In den Eingang gehen",
-                    "schwertKaufen": "Schwert kaufen"
-                }
-            else:
-                optionen = {
-                    "position": "In den Eingang gehen"
-                }
+                optionen = {**optionen, "schwertKaufen": "Schwert kaufen"}
         elif state["position"] == "Menue":
-            optionen = {
-                "neuesSpiel": "Neues Spiel starten"
-            }
+            optionen = {"neuesSpiel": "Neues Spiel starten"}
         return optionen
 
 
@@ -148,7 +129,7 @@ def zork_main():
         else:
             return "Du bist im Menü"
 
-    #=== HTML erschaffen ===
+    #=== Optionsnachricht erschaffen ===
     optionsnachricht = "<ol>"
     for key, value in optionen.items():
         optionsnachricht += (
