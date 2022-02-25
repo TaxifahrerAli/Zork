@@ -16,14 +16,14 @@ def make_invetory(state):
 
 #=== Optionen verarbeiten ===
 def optionen_verarbeiten(state, choice):
-    if state["position"] == "Eingang" and state["hp"] > 0:
+    if state["position"] == "Eingang":
         if choice == "position1":
             state = {**state, "position": "Schatzkammer"}
         elif choice == "position2":
             state = {**state, "position": "Handler"}
         elif choice == "beenden":
             state = {**state, "position": "Menue"}
-    elif state["position"] == "Schatzkammer" and state["hp"] > 0:
+    elif state["position"] == "Schatzkammer":
         if choice == "position":
             state = {**state, "position": "Eingang"}
         elif choice == "drachenBekämpfen":
@@ -33,9 +33,11 @@ def optionen_verarbeiten(state, choice):
                 state = {**state, "dragonAlive": False, "treasureAvail": True}
             else:
                 state = {**state, "hp": state["hp"] - 1}
+                if state["hp"] == 0:
+                    state = {**state, "position": "Menue"}
         elif choice == "schatzAufheben":
             state = {**state, "treasureAvail": False}
-    elif state["position"] == "Handler" and state["hp"] > 0:
+    elif state["position"] == "Handler":
         if choice == "position":
             state = {**state, "position": "Eingang"}
         elif choice == "schwertKaufen":
@@ -70,7 +72,6 @@ def optionen_erörtern(state):
         optionen = {"position" : "In den Eingang gehen"}
         if state["swordAvail"]:
             optionen = {**optionen, "schwertKaufen": "Schwert kaufen"}
-    elif
     elif state["position"] == "Menue":
         optionen = {"neuesSpiel": "Neues Spiel starten"}
     return optionen
