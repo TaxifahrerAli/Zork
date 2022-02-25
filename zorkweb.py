@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, redirect
 from random import randint
 import json
 from random import randint
@@ -70,6 +70,7 @@ def optionen_erörtern(state):
         optionen = {"position" : "In den Eingang gehen"}
         if state["swordAvail"]:
             optionen = {**optionen, "schwertKaufen": "Schwert kaufen"}
+    elif
     elif state["position"] == "Menue":
         optionen = {"neuesSpiel": "Neues Spiel starten"}
     return optionen
@@ -81,16 +82,8 @@ def position(state):
     else:
         return "Du bist im Menü"
 
-
-app = Flask(__name__)
-
-
-@app.route("/zork",methods=["GET","POST"])
-
-
-def zork_main():
-
-    # === Spielstand laden === 
+# === Spielstand laden === 
+def load_game():
     try:
         with open("save.json","r") as fp:
             state = json.loads(fp.read())
@@ -102,16 +95,37 @@ def zork_main():
             "swordAvail": True,
             "treasureAvail": True,
         }
+    return state
 
+# === Spielstand (vorläufig) in der json speichern ===
+def save_game(state):
+    with open('save.json', 'w') as fp:
+        fp.write(json.dumps(state))
+
+
+app = Flask(__name__)
+
+
+@app.route("/zork",methods=["POST"])
+def process_state():
 
     #=== Wahl abspeichern
     choice = request.form.get('choice')
-    print(choice)
+
+    state = load_game()
+    state = optionen_verarbeiten(state,choice)
+
+    save_game(state)
+
+    return redirect("/zork", code = 302)
 
 
-    state = optionen_verarbeiten(state, choice)
+@app.route("/zork",methods=["GET"])
+def show_game():
+
+    state = load_game()
+
     optionen = optionen_erörtern(state)
-
 
     #=== Optionsnachricht erschaffen ===
     optionsnachricht = "<ol>"
@@ -130,11 +144,6 @@ def zork_main():
             """ % (value, key)
         )
     optionsnachricht += "</ol>"
-
-
-    # === Spielstand (vorläufig) in der json speichern ===
-    with open('save.json', 'w') as fp:
-        fp.write(json.dumps(state))
 
     # === Spielstand wiedergeben ===
     return """
