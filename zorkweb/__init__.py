@@ -49,7 +49,7 @@ def load_game():
     try:
         with open("save.json", "r") as fp:
             state = json.loads(fp.read())
-    except json.decoder.JSONDecodeError:
+    except:
         state = {"position": "Menue"}
     return state
 
