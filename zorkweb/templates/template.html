@@ -1,0 +1,20 @@
+<h4>Zork</h4>
+<p>{{ beschreibung }}<p>
+<p>{{ inventory }}</p>
+<form action="/zork" method="POST">
+    <ol>
+        {% for key, value in optionen.items() %}
+        <li>
+            <label>
+                {{ value }}
+                <input
+                    type='radio'
+                    name='choice'
+                    value= {{ key }}
+                >
+            </label>
+        </li>
+        {% endfor %}
+    </ol>
+    <button type="submit">OK</button>
+</form>

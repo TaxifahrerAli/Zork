@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, render_template
 import json
 from . import room_eingang
 from . import room_schatzkammer
@@ -82,29 +82,35 @@ def show_game():
 
     optionen, beschreibung = optionen_erörtern(state)
 
-    optionsnachricht = "<ol>"
-    for key, value in optionen.items():
-        optionsnachricht += (
-            """<li>
-                    <label>
-                        %s
-                        <input
-                            type='radio'
-                            name='choice'
-                            value= %s
-                        >
-                    </label>
-                </li>
-            """ % (value, key)
-        )
-    optionsnachricht += "</ol>"
+    # optionsnachricht = "<ol>"
+    # for key, value in optionen.items():
+    #     optionsnachricht += (
+    #         """<li>
+    #                 <label>
+    #                     %s
+    #                     <input
+    #                         type='radio'
+    #                         name='choice'
+    #                         value= %s
+    #                     >
+    #                 </label>
+    #             </li>
+    #         """ % (value, key)
+    #     )
+    # optionsnachricht += "</ol>"
 
-    return """
-        <h4>Zork</h4>
-        <p>%s<p>
-        <p>%s</p>
-        <form action="/zork" method="POST">
-            %s
-            <button type="submit">OK</button>
-        </form
-    """ % (beschreibung, make_invetory(state), optionsnachricht)
+    # return """
+    #     <h4>Zork</h4>
+    #     <p>%s<p>
+    #     <p>%s</p>
+    #     <form action="/zork" method="POST">
+    #         %s
+    #         <button type="submit">OK</button>
+    #     </form>
+    # """ % (beschreibung, make_invetory(state), optionsnachricht)
+
+    return render_template("template.html", beschreibung = beschreibung, inventory = make_invetory(state), optionen = optionen)
+
+# @app.route("/experiment")
+# def experiment():
+#     return render_template("test.html", name="Berk", inventar=["pickaxe", "diamonds"])
