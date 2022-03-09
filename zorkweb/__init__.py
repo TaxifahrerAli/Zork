@@ -1,19 +1,11 @@
-from flask import Flask, request, redirect, render_template
 import json
+import pg8000
+from flask import Flask, request, redirect, render_template
 from . import room_eingang
 from . import room_schatzkammer
 from . import room_handler
 from . import room_brunnen
 from . import room_menue
-
-
-def make_invetory(state):
-    if state["position"] != "Menue":
-        nachricht = "Du hast %s Lebenspunkte. " % state["hp"]
-        nachricht += "Du hast den Schatz. " if not state["treasureAvail"] else ""
-        nachricht += "Du hast ein Schwert." if not state["swordAvail"] else ""
-        return nachricht
-    return ""
 
 
 def optionen_verarbeiten(state, choice):
@@ -82,35 +74,48 @@ def show_game():
 
     optionen, beschreibung = optionen_erörtern(state)
 
-    # optionsnachricht = "<ol>"
-    # for key, value in optionen.items():
-    #     optionsnachricht += (
-    #         """<li>
-    #                 <label>
-    #                     %s
-    #                     <input
-    #                         type='radio'
-    #                         name='choice'
-    #                         value= %s
-    #                     >
-    #                 </label>
-    #             </li>
-    #         """ % (value, key)
-    #     )
-    # optionsnachricht += "</ol>"
+    return render_template("template.html", beschreibung=beschreibung, optionen=optionen, state=state)
 
-    # return """
-    #     <h4>Zork</h4>
-    #     <p>%s<p>
-    #     <p>%s</p>
-    #     <form action="/zork" method="POST">
-    #         %s
-    #         <button type="submit">OK</button>
-    #     </form>
-    # """ % (beschreibung, make_invetory(state), optionsnachricht)
+@app.route("/users", methods=["GET"])
+def userliste():
+    conn = pg8000.connect(user="zork", password="zork", database="zork")
+    cursor = conn.cursor()
+    cursor.execute("select username from users")
+    rows = cursor.fetchall()
+    conn.commit()
+    conn.close()
+    return render_template("userlist.html", users=rows)
 
-    return render_template("template.html", beschreibung = beschreibung, inventory = make_invetory(state), optionen = optionen)
+@app.route("/users", methods=["POST"])
+def user_löschen():
+    conn = pg8000.connect(user="zork", password="zork", database="zork")
+    cursor = conn.cursor()
+    
+    userLöschen = request.form.get('choice')
+    name = ""
+    for i in userLöschen:
+        if i != "[" and i != "]" and i != "'":
+            print(i)
+            name += i
+    cursor.execute("delete from users where username = %s", [name])
 
-# @app.route("/experiment")
-# def experiment():
-#     return render_template("test.html", name="Berk", inventar=["pickaxe", "diamonds"])
+    conn.commit()
+    conn.close()
+    return redirect("/users", code=302)
+
+
+@app.route("/createuser", methods=["GET"])
+def userlists():
+    return render_template("createUser.html")
+
+@app.route("/createuser", methods=["POST"])
+def datenbank_bearbeiten():
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    conn = pg8000.connect(user="zork", password="zork", database="zork")
+    cursor = conn.cursor()
+    cursor.execute("insert into users (username, password) values (%s, %s)" , [username, password])
+    conn.commit()
+    conn.close()
+    return redirect("/users", code=302)

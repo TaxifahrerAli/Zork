@@ -1,6 +1,16 @@
 <h4>Zork</h4>
 <p>{{ beschreibung }}<p>
-<p>{{ inventory }}</p>
+<p>
+    {% if state["position"] != "Menue" %}
+        Du hast {{ state["hp"] }} Lebenspunkte.
+        {% if not state["treasureAvail"] %}
+            Du hast den Schatz.
+        {% endif %}
+        {% if not state["swordAvail"] %}
+            Du hast ein Schwert.
+        {% endif %}
+    {% endif %}
+</p>
 <form action="/zork" method="POST">
     <ol>
         {% for key, value in optionen.items() %}

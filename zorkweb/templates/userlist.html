@@ -1,0 +1,11 @@
+<ul>
+    <form action="/users" method="POST">
+        {% for user in users %}
+        <li>
+            {{ user }}
+            <input type="radio" name="choice" value={{ user }}>
+        </li>
+        {% endfor %}
+        <button type="submit">Löschen</button>
+    </form>
+</ul>
