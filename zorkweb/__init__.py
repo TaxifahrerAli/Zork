@@ -37,19 +37,34 @@ def optionen_erörtern(state):
         raise Exception("Unbekannte Position")
 
 
-def load_game():
-    try:
-        with open("save.json", "r") as fp:
-            state = json.loads(fp.read())
-    except:
-        state = {"position": "Menue"}
+def db_connect(user, password, database):
+    conn = pg8000.connect(user=user, password=password, database=database)
+    cursor = conn.cursor()
+    return (conn, cursor)
+
+
+def load_game(userid):
+    conn, cursor = db_connect("zork", "zork", "zork")
+    cursor.execute("select hp, position, dragonalive, treasureavail, swordAvail, brunnennutzungen from users where id = %s", [userid])
+    state = cursor.fetchall()[0]
+    state = {
+        "hp": state[0],
+        "position": state[1],
+        "dragonAlive": state[2],
+        "treasureAvail": state[3],
+        "swordAvail": state[4],
+        "brunnenNutzungen": state[5]
+    }
     return state
 
 
-def save_game(state):
-    with open('save.json', 'w') as fp:
-        fp.write(json.dumps(state))
-
+def save_game(state, userid):
+    conn, cursor = db_connect("zork", "zork", "zork")
+    userid = session["userid"]
+    cursor.execute("update users set hp = %s, brunnennutzungen = %s, swordavail = %s, dragonalive = %s, treasureavail = %s, position = %s where id = %s",
+        [state["hp"], state["brunnenNutzungen"], state["swordAvail"], state["dragonAlive"],state["treasureAvail"], state["position"], userid])
+    conn.commit()
+    conn.close()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sldfnalsdnf5'
@@ -60,10 +75,10 @@ def process_state():
 
     choice = request.form.get('choice')
 
-    state = load_game()
+    state = load_game(session["userid"])
     state = optionen_verarbeiten(state, choice)
 
-    save_game(state)
+    save_game(state, session["userid"])
 
     return redirect("/zork", code=302)
 
@@ -71,7 +86,7 @@ def process_state():
 @app.route("/zork", methods=["GET"])
 def show_game():
 
-    state = load_game()
+    state = load_game(session["userid"])
 
     optionen, beschreibung = optionen_erörtern(state)
 
@@ -79,8 +94,7 @@ def show_game():
 
 @app.route("/users", methods=["GET"])
 def userliste_rendern():
-    conn = pg8000.connect(user="zork", password="zork", database="zork")
-    cursor = conn.cursor()
+    conn, cursor = db_connect("zork", "zork", "zork")
     cursor.execute("select id, username from users")
     rows = cursor.fetchall()
     conn.commit()
@@ -89,8 +103,7 @@ def userliste_rendern():
 
 @app.route("/users", methods=["POST"])
 def user_löschen():
-    conn = pg8000.connect(user="zork", password="zork", database="zork")
-    cursor = conn.cursor()
+    conn, cursor = db_connect("zork", "zork", "zork")
 
     userLöschen = request.form.get('choice')
     cursor.execute("delete from users where id = %s", [userLöschen])
@@ -109,8 +122,7 @@ def datenbank_bearbeiten():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    conn = pg8000.connect(user="zork", password="zork", database="zork")
-    cursor = conn.cursor()
+    conn, cursor = db_connect("zork", "zork", "zork")
     cursor.execute("insert into users (username, password) values (%s, %s)" , [username, password])
     conn.commit()
     conn.close()
@@ -122,8 +134,7 @@ def login():
 
 @app.route("/login", methods=["POST"])
 def pruefung():
-    conn = pg8000.connect(user="zork", password="zork", database="zork")
-    cursor = conn.cursor()
+    conn, cursor = db_connect("zork", "zork", "zork")
     username = request.form.get('username')
     password = request.form.get('password')
     print(username)
@@ -138,8 +149,7 @@ def pruefung():
 
 @app.route("/profil", methods=["GET"])
 def sofjds():
-    conn = pg8000.connect(user="zork", password="zork", database="zork")
-    cursor = conn.cursor()
+    conn, cursor = db_connect("zork", "zork", "zork")
     id = session["userid"]
     if id:
         cursor.execute("select username from users where id = %s", [id])
