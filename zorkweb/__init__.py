@@ -45,7 +45,19 @@ def db_connect(user, password, database):
 
 def load_game(userid):
     conn, cursor = db_connect("zork", "zork", "zork")
-    cursor.execute("select hp, position, dragonalive, treasureavail, swordAvail, brunnennutzungen from users where id = %s", [userid])
+    cursor.execute("""
+        select
+            hp,
+            position,
+            dragonalive,
+            treasureavail,
+            swordAvail,
+            brunnennutzungen
+        from users
+        where id = %s
+        """,
+        [userid]
+    )
     state = cursor.fetchall()[0]
     state = {
         "hp": state[0],
@@ -61,10 +73,22 @@ def load_game(userid):
 def save_game(state, userid):
     conn, cursor = db_connect("zork", "zork", "zork")
     userid = session["userid"]
-    cursor.execute("update users set hp = %s, brunnennutzungen = %s, swordavail = %s, dragonalive = %s, treasureavail = %s, position = %s where id = %s",
-        [state["hp"], state["brunnenNutzungen"], state["swordAvail"], state["dragonAlive"],state["treasureAvail"], state["position"], userid])
+    cursor.execute("""
+        update users set
+            hp = %s,
+            brunnennutzungen = %s,
+            swordavail = %s,
+            dragonalive = %s,
+            treasureavail = %s,
+            position = %s
+            where id = %s
+        """,
+        [state["hp"], state["brunnenNutzungen"], state["swordAvail"],
+        state["dragonAlive"], state["treasureAvail"], state["position"], userid]
+    )
     conn.commit()
     conn.close()
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sldfnalsdnf5'
@@ -84,16 +108,22 @@ def process_state():
 
 
 @app.route("/zork", methods=["GET"])
-def show_game():
+def render_zork():
 
     state = load_game(session["userid"])
 
     optionen, beschreibung = optionen_erörtern(state)
 
-    return render_template("template.html", beschreibung=beschreibung, optionen=optionen, state=state)
+    return render_template(
+        "template.html",
+        beschreibung=beschreibung,
+        optionen=optionen,
+        state=state
+    )
+
 
 @app.route("/users", methods=["GET"])
-def userliste_rendern():
+def render_users():
     conn, cursor = db_connect("zork", "zork", "zork")
     cursor.execute("select id, username from users")
     rows = cursor.fetchall()
@@ -101,8 +131,9 @@ def userliste_rendern():
     conn.close()
     return render_template("userlist.html", users=rows)
 
+
 @app.route("/users", methods=["POST"])
-def user_löschen():
+def user_delete():
     conn, cursor = db_connect("zork", "zork", "zork")
 
     userLöschen = request.form.get('choice')
@@ -114,41 +145,48 @@ def user_löschen():
 
 
 @app.route("/createuser", methods=["GET"])
-def form_rendern():
+def render_form():
     return render_template("createUser.html")
 
+
 @app.route("/createuser", methods=["POST"])
-def datenbank_bearbeiten():
+def change_table():
     username = request.form.get('username')
     password = request.form.get('password')
 
     conn, cursor = db_connect("zork", "zork", "zork")
-    cursor.execute("insert into users (username, password) values (%s, %s)" , [username, password])
+    cursor.execute("insert into users (username, password) values (%s, %s)",
+        [username, password])
     conn.commit()
     conn.close()
     return redirect("/users", code=302)
 
+
 @app.route("/login", methods=["GET"])
-def login():
+def render_login():
     return render_template("login.html")
 
+
 @app.route("/login", methods=["POST"])
-def pruefung():
+def login():
     conn, cursor = db_connect("zork", "zork", "zork")
     username = request.form.get('username')
     password = request.form.get('password')
-    print(username)
-    cursor.execute("select id from users where username = %s and password = %s", [username, password])
+    cursor.execute("""select id from users
+        where username = %s
+        and password = %s
+        """, [username, password]
+    )
     user = cursor.fetchall()
     if user:
         session["userid"] = user[0][0]
-        print(user)
         return redirect("/profil", code=302)
     else:
         return redirect("/login", code=302)
 
+
 @app.route("/profil", methods=["GET"])
-def sofjds():
+def render_profil():
     conn, cursor = db_connect("zork", "zork", "zork")
     id = session["userid"]
     if id:
