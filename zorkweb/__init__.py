@@ -1,5 +1,6 @@
 import json
 import pg8000
+from random import randint
 from flask import Flask, request, session, redirect, render_template
 from . import room_eingang
 from . import room_schatzkammer
@@ -195,3 +196,82 @@ def render_profil():
         return render_template("profil.html", username=username[0][0])
     else:
         return render_template("profil.html", username="none")
+
+
+# ==============================================================================
+
+
+def raumname_erstellen(leerRaume, raum, koordinaten):
+    zufallsraum = randint(1, 13)
+    if zufallsraum < 10 and leerRaume > 0:
+        raum["name"] = "leerRaum%s" % leerRaume
+        leerRaume = leerRaume - 1
+    elif zufallsraum == 11:
+        raum["name"] = "Brunnen"
+    elif zufallsraum == 12:
+        raum["name"] = "Schatzkammer"
+    elif zufallsraum == 13:
+        raum["name"] = "Haendler"
+
+    for key, value in koordinaten.items():
+        if key == "Haendler" and raum["name"] == "Haendler":
+            raum["name"] = ""
+        elif key == "Brunnen" and raum["name"] == "Brunnen":
+            raum["name"] = ""
+        elif key == "Schatzkammer" and raum["name"] == "Schatzkammer":
+            raum["name"] = ""
+    
+    return raum, leerRaume
+
+
+def position_erstellen(raum, ausgangsPosition, koordinaten):
+    positionErstellt = True
+    zufallsrichtung = randint(1, 4)
+    if zufallsrichtung == 1:
+        raum["x"] = ausgangsPosition["x"]
+        raum["y"] = ausgangsPosition["y"] + 1
+    elif zufallsrichtung == 2:
+        raum["x"] = ausgangsPosition["y"]
+        raum["x"] = ausgangsPosition["x"] + 1
+    elif zufallsrichtung == 3:
+        raum["x"] = ausgangsPosition["x"]
+        raum["y"] = ausgangsPosition["y"] - 1
+    elif zufallsrichtung == 4:
+        raum["x"] = ausgangsPosition["y"]
+        raum["x"] = ausgangsPosition["x"] - 1
+
+    for key, value in koordinaten.items():
+        if raum["x"] == value[0] and raum["y"] == value[1]:
+            ausgangsPosition["x"] = value[0]
+            ausgangsPosition["y"] = value[1]
+            positionErstellt = False
+
+    return raum, positionErstellt
+
+@app.cli.command()
+def generate_level():
+    koordinaten = {
+        "Eingang" : (0, 0)
+    }
+    leerRaume = 10
+    raumAnzahl = 13
+    ausgangsPosition = {"x" : 0, "y" : 0}
+    while raumAnzahl:
+        raum = {
+            "name" : "",
+            "x" : 0,
+            "y" : 0
+        }
+
+        raum, positionErstellt = position_erstellen(raum, ausgangsPosition, koordinaten)
+
+        if positionErstellt:
+            raum, leerRaume = raumname_erstellen(leerRaume, raum, koordinaten)
+
+        if raum["name"]:
+            koordinaten[raum["name"]] = (raum["x"], raum["y"])
+            raumAnzahl = raumAnzahl -1
+            print(raum)
+            ausgangsPosition["x"] = raum["x"]
+            ausgangsPosition["y"] = raum["y"]
+    print("Level wurde generiert!")
