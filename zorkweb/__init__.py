@@ -7,35 +7,78 @@ from . import room_schatzkammer
 from . import room_handler
 from . import room_brunnen
 from . import room_menue
+from . import room_leerRaum
 
 
-def optionen_verarbeiten(state, choice):
+def optionen_verarbeiten(state, choice, nachbarraume):
     if state["position"] == "Eingang":
-        state = room_eingang.verarbeiten(state, choice)
+        state = room_eingang.verarbeiten(state, choice, nachbarraume)
     elif state["position"] == "Schatzkammer":
-        state = room_schatzkammer.verarbeiten(state, choice)
+        state = room_schatzkammer.verarbeiten(state, choice, nachbarraume)
     elif state["position"] == "Handler":
-        state = room_handler.verarbeiten(state, choice)
+        state = room_handler.verarbeiten(state, choice, nachbarraume)
     elif state["position"] == "Brunnen" and state["hp"] > 0:
-        state = room_brunnen.verarbeiten(state, choice)
+        state = room_brunnen.verarbeiten(state, choice, nachbarraume)
     elif state["position"] == "Menue":
         state = room_menue.verarbeiten(state, choice)
+    else:
+        state = room_leerRaum.verarbeiten(state, choice, nachbarraume)
     return state
 
 
-def optionen_erörtern(state):
+def optionen_erörtern(state, nachbarraume):
+    nachbarraume = nachbarraume_eroertern(1, state["position"])
     if state["position"] == "Eingang":
-        return room_eingang.erörtern(state)
+        return room_eingang.erörtern(state, nachbarraume)
     elif state["position"] == "Schatzkammer":
-        return room_schatzkammer.erörtern(state)
+        return room_schatzkammer.erörtern(state, nachbarraume)
     elif state["position"] == "Handler":
-        return room_handler.erörtern(state)
+        return room_handler.erörtern(state, nachbarraume)
     elif state["position"] == "Brunnen":
-        return room_brunnen.erörtern(state)
+        return room_brunnen.erörtern(state, nachbarraume)
     elif state["position"] == "Menue":
         return room_menue.erörtern()
     else:
-        raise Exception("Unbekannte Position")
+        return room_leerRaum.erörtern(state, nachbarraume)
+    # else:
+    #     raise Exception("Unbekannte Position")
+
+
+def nachbarraume_eroertern(eingangsid, raumname):
+    conn, cursor = db_connect("zork", "zork", "zork")
+    cursor.execute("select raumname, x, y from raum where id >= %s and id <= %s", [eingangsid, eingangsid + 13])
+    norden, osten, sueden, westen = "", "", "", ""
+    raume = cursor.fetchall()
+    for i in raume:
+        if i[0] == raumname:
+            position = [i[0], i[1], i[2]]
+    if raumname != "Menue":
+        for i in raume:
+            if i[1] == position[1] and i[2] - 1 == position[2]:
+                norden = i[0]
+            elif i[1] + 1 == position[1] and i[2] == position[2]:
+                osten = i[0]
+            elif i[1] == position[1] and i[2] + 1 == position[2]:
+                sueden = i[0]
+            elif i[1] - 1 == position[1] and i[2] == position[2]:
+                westen = i[0]
+    conn.close()
+    return {"norden": norden, "osten": osten, "sueden": sueden, "westen": westen}
+
+
+def optionen_darlegen(nachbarraume):
+    optionen = {}
+    for key, value in nachbarraume.items():
+        if value:
+            if key == "norden":
+                optionen = {**optionen, key : "Nach Norden"}
+            elif key == "sueden":
+                optionen = {**optionen, key : "Nach Sueden"}
+            elif key == "westen":
+                optionen = {**optionen, key : "Nach Westen"}
+            elif key == "osten":
+                optionen = {**optionen, key : "Nach Osten"}
+    return optionen
 
 
 def db_connect(user, password, database):
@@ -101,7 +144,8 @@ def process_state():
     choice = request.form.get('choice')
 
     state = load_game(session["userid"])
-    state = optionen_verarbeiten(state, choice)
+    nachbarraume = nachbarraume_eroertern(1, state["position"])
+    state = optionen_verarbeiten(state, choice, nachbarraume)
 
     save_game(state, session["userid"])
 
@@ -112,8 +156,10 @@ def process_state():
 def render_zork():
 
     state = load_game(session["userid"])
+    nachbarraume = nachbarraume_eroertern(1, state["position"])
 
-    optionen, beschreibung = optionen_erörtern(state)
+    optionen, beschreibung = optionen_erörtern(state, nachbarraume)
+    print(optionen, beschreibung)
 
     return render_template(
         "template.html",
@@ -231,31 +277,34 @@ def position_erstellen(raum, ausgangsPosition, koordinaten):
         raum["x"] = ausgangsPosition["x"]
         raum["y"] = ausgangsPosition["y"] + 1
     elif zufallsrichtung == 2:
-        raum["x"] = ausgangsPosition["y"]
+        raum["y"] = ausgangsPosition["y"]
         raum["x"] = ausgangsPosition["x"] + 1
     elif zufallsrichtung == 3:
         raum["x"] = ausgangsPosition["x"]
         raum["y"] = ausgangsPosition["y"] - 1
     elif zufallsrichtung == 4:
-        raum["x"] = ausgangsPosition["y"]
+        raum["y"] = ausgangsPosition["y"]
         raum["x"] = ausgangsPosition["x"] - 1
 
     for key, value in koordinaten.items():
         if raum["x"] == value[0] and raum["y"] == value[1]:
-            ausgangsPosition["x"] = value[0]
-            ausgangsPosition["y"] = value[1]
             positionErstellt = False
 
     return raum, positionErstellt
 
+
 @app.cli.command()
 def generate_level():
+
+    conn, cursor = db_connect("zork", "zork", "zork")
+    cursor.execute("insert into raum (raumname, x, y) values('Eingang', '0', '0')")
     koordinaten = {
         "Eingang" : (0, 0)
     }
     leerRaume = 10
     raumAnzahl = 13
     ausgangsPosition = {"x" : 0, "y" : 0}
+
     while raumAnzahl:
         raum = {
             "name" : "",
@@ -274,4 +323,8 @@ def generate_level():
             print(raum)
             ausgangsPosition["x"] = raum["x"]
             ausgangsPosition["y"] = raum["y"]
+            cursor.execute("insert into raum (raumname, x, y) values (%s, %s, %s)" , [raum["name"], raum["x"], raum["y"]])
+    conn.commit()
+    conn.close()
     print("Level wurde generiert!")
+    print(nachbarraume_eroertern(15, ["Schatzkammer", 0,-2]))

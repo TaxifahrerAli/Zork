@@ -7,16 +7,11 @@ def verarbeiten(state, choice, nachbarraume):
         state = {**state, "position" : nachbarraume["westen"]}
     elif choice == "osten":
         state = {**state, "position" : nachbarraume["osten"]}
-    elif choice == "schwertKaufen":
-        state = {**state, "swordAvail": False}
     return state
 
 
 def erörtern(state, nachbarraume):
     optionen = {}
-    beschreibung = "Du bist beim Händler"
-    if state["swordAvail"]:
-        optionen = {"schwertKaufen": "Schwert kaufen"}
     for key, value in nachbarraume.items():
         if value:
             if key == "norden":
@@ -27,4 +22,5 @@ def erörtern(state, nachbarraume):
                 optionen = {**optionen, key : "Nach Westen"}
             elif key == "osten":
                 optionen = {**optionen, key : "Nach Osten"}
+    beschreibung = "Du bist in einem Leerraum."
     return optionen, beschreibung
