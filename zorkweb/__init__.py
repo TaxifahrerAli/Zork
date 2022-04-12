@@ -8,40 +8,39 @@ from . import room_handler
 from . import room_brunnen
 from . import room_menue
 from . import room_leerRaum
+from . import room_common
 
 
-def optionen_verarbeiten(state, choice, nachbarraume):
+def optionen_verarbeiten(state, choice):
     if state["position"] == "Eingang":
-        state = room_eingang.verarbeiten(state, choice, nachbarraume)
+        state = room_eingang.verarbeiten(state, choice)
     elif state["position"] == "Schatzkammer":
-        state = room_schatzkammer.verarbeiten(state, choice, nachbarraume)
+        state = room_schatzkammer.verarbeiten(state, choice)
     elif state["position"] == "Handler":
-        state = room_handler.verarbeiten(state, choice, nachbarraume)
+        state = room_handler.verarbeiten(state, choice)
     elif state["position"] == "Brunnen" and state["hp"] > 0:
-        state = room_brunnen.verarbeiten(state, choice, nachbarraume)
+        state = room_brunnen.verarbeiten(state, choice)
     elif state["position"] == "Menue":
         state = room_menue.verarbeiten(state, choice)
     else:
-        state = room_leerRaum.verarbeiten(state, choice, nachbarraume)
+        state = room_leerRaum.verarbeiten(state, choice)
     return state
 
 
-def optionen_erörtern(state, nachbarraume):
+def optionen_erörtern(state):
     nachbarraume = nachbarraume_eroertern(1, state["position"])
     if state["position"] == "Eingang":
-        return room_eingang.erörtern(state, nachbarraume)
+        return room_eingang.erörtern(state)
     elif state["position"] == "Schatzkammer":
-        return room_schatzkammer.erörtern(state, nachbarraume)
+        return room_schatzkammer.erörtern(state)
     elif state["position"] == "Handler":
-        return room_handler.erörtern(state, nachbarraume)
+        return room_handler.erörtern(state)
     elif state["position"] == "Brunnen":
-        return room_brunnen.erörtern(state, nachbarraume)
+        return room_brunnen.erörtern(state)
     elif state["position"] == "Menue":
-        return room_menue.erörtern()
+        return room_menue.erörtern(state)
     else:
-        return room_leerRaum.erörtern(state, nachbarraume)
-    # else:
-    #     raise Exception("Unbekannte Position")
+        return room_leerRaum.erörtern(state)
 
 
 def nachbarraume_eroertern(eingangsid, raumname):
@@ -64,21 +63,6 @@ def nachbarraume_eroertern(eingangsid, raumname):
                 westen = i[0]
     conn.close()
     return {"norden": norden, "osten": osten, "sueden": sueden, "westen": westen}
-
-
-def optionen_darlegen(nachbarraume):
-    optionen = {}
-    for key, value in nachbarraume.items():
-        if value:
-            if key == "norden":
-                optionen = {**optionen, key : "Nach Norden"}
-            elif key == "sueden":
-                optionen = {**optionen, key : "Nach Sueden"}
-            elif key == "westen":
-                optionen = {**optionen, key : "Nach Westen"}
-            elif key == "osten":
-                optionen = {**optionen, key : "Nach Osten"}
-    return optionen
 
 
 def db_connect(user, password, database):
@@ -145,7 +129,9 @@ def process_state():
 
     state = load_game(session["userid"])
     nachbarraume = nachbarraume_eroertern(1, state["position"])
-    state = optionen_verarbeiten(state, choice, nachbarraume)
+
+    state = optionen_verarbeiten(state, choice)
+    state = room_common.position_wechseln(choice, state, nachbarraume)
 
     save_game(state, session["userid"])
 
@@ -158,8 +144,9 @@ def render_zork():
     state = load_game(session["userid"])
     nachbarraume = nachbarraume_eroertern(1, state["position"])
 
-    optionen, beschreibung = optionen_erörtern(state, nachbarraume)
-    print(optionen, beschreibung)
+    raumoptionen, beschreibung = optionen_erörtern(state)
+    bewegungsoptionen = room_common.position_darlegen(nachbarraume)
+    optionen = {**raumoptionen, **bewegungsoptionen}
 
     return render_template(
         "template.html",

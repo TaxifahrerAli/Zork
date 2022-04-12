@@ -11,7 +11,7 @@ def verarbeiten(state, choice):
     return state
 
 
-def erörtern():
+def erörtern(state):
     beschreibung = "Du bist im Menü"
     optionen = {"neuesSpiel": "Neues Spiel starten"}
     return optionen, beschreibung

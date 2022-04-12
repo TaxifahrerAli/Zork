@@ -1,16 +1,8 @@
 from random import randint
-from . import __init__
+from . import room_common
 
-def verarbeiten(state, choice, nachbarraume):
-    if choice == "norden":
-        state = {**state, "position" : nachbarraume["norden"]}
-    elif choice == "sueden":
-        state = {**state, "position" : nachbarraume["sueden"]}
-    elif choice == "westen":
-        state = {**state, "position" : nachbarraume["westen"]}
-    elif choice == "osten":
-        state = {**state, "position" : nachbarraume["osten"]}
-    elif choice == "drachenBekämpfen":
+def verarbeiten(state, choice):
+    if choice == "drachenBekämpfen":
         randomint = randint(1, 6)
         if ((randomint < 4 and not state["swordAvail"])
                 or (randomint == 6 and state["swordAvail"])):
@@ -24,9 +16,9 @@ def verarbeiten(state, choice, nachbarraume):
     return state
 
 
-def erörtern(state, nachbarraume):
+def erörtern(state):
     beschreibung = "Du bist in der Schatzkammer"
-    optionen = __init__.optionen_darlegen(nachbarraume)
+    optionen = {}
     if state["dragonAlive"]:
         optionen = {**optionen, "drachenBekämpfen": "Drachen bekämpfen"}
     elif not state["dragonAlive"] and state["treasureAvail"]:
