@@ -52,22 +52,46 @@ def nachbarraume_eroertern(userid, raumname):
         if i[0] == raumname:
             position = i
     if raumname != "Menue":
-        for i in raume:
-            if i[1] == position[1] and i[2] - 1 == position[2]:
-                norden = i[0]
-            elif i[1] + 1 == position[1] and i[2] == position[2]:
-                osten = i[0]
-            elif i[1] == position[1] and i[2] + 1 == position[2]:
-                sueden = i[0]
-            elif i[1] - 1 == position[1] and i[2] == position[2]:
-                westen = i[0]
+        cursor.execute("select raumname, x, y from raum where x = %s and y - 1 = %s and userid = %s", [position[1], position[2], userid])
+        norden = cursor.fetchall()
+        cursor.execute("select raumname, x, y from raum where x - 1 = %s and y = %s and userid = %s", [position[1], position[2], userid])
+        westen = cursor.fetchall()
+        cursor.execute("select raumname, x, y from raum where x = %s and y + 1 = %s and userid = %s", [position[1], position[2], userid])
+        sueden = cursor.fetchall()
+        cursor.execute("select raumname, x, y from raum where x + 1 = %s and y = %s and userid = %s", [position[1], position[2], userid])
+        osten = cursor.fetchall()
+
+        raume = {"norden": norden, "osten": osten, "sueden": sueden, "westen": westen}
+        for key, value in raume.items():
+            if value:
+                raume[key] = value[0][0]
     conn.close()
-    return {"norden": norden, "osten": osten, "sueden": sueden, "westen": westen}
+    return raume
 
 
 def generate_level(userid):
 
     conn, cursor = db_connect("zork", "zork", "zork")
+
+    cursor.execute("""
+        update users set
+            (hp,
+            position,
+            dragonalive,
+            swordavail,
+            treasureavail,
+            brunnennutzungen)
+        =
+            (5,
+            'Eingang',
+            true,
+            true,
+            true,
+            5)
+        where id = %s
+        """ , [userid])
+
+    cursor.execute("delete from raum where userid = %s", [userid])
     cursor.execute("insert into raum (raumname, x, y, userid) values('Eingang', '0', '0', %s)", [userid])
     koordinaten = {
         "Eingang" : (0, 0)
@@ -136,6 +160,7 @@ def load_game(userid):
 def save_game(state, userid):
     conn, cursor = db_connect("zork", "zork", "zork")
     userid = session["userid"]
+    print(state)
     cursor.execute("""
         update users set
             hp = %s,
@@ -269,35 +294,7 @@ def render_profil():
 
 @app.route("/level", methods=["POST"])
 def levels():
-    conn, cursor = db_connect("zork", "zork", "zork")
-    id = session["userid"]
-    cursor.execute("select userid from raum where userid = %s", [id])
-    user_raume = cursor.fetchall()
-    if request.form.get('new_level'):
-        if user_raume:
-            cursor.execute("""
-                update users set
-                    (hp,
-                    position,
-                    dragonalive,
-                    swordavail,
-                    treasureavail,
-                    brunnennutzungen)
-                =
-                    (5,
-                    'Eingang',
-                    true,
-                    true,
-                    true,
-                    5)
-                where id = %s
-                """ , [id])
-            cursor.execute("delete from raum where userid = %s", [id])
-            conn.commit()
-            conn.close()
-            generate_level(id)
-        else:
-            generate_level(id)
+    generate_level(session["userid"])
     return redirect("/level", code=302)
 
 

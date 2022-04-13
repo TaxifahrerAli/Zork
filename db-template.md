@@ -14,7 +14,7 @@ create table users(
 create table raum (
     id serial primary key,
     raumname text,
-    x int,
-    y int,
-    userid int
+    x integer,
+    y integer,
+    userid integer
 );
