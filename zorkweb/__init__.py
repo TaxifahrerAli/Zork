@@ -27,8 +27,8 @@ def optionen_verarbeiten(state, choice):
     return state
 
 
-def optionen_erörtern(state):
-    nachbarraume = nachbarraume_eroertern(1, state["position"])
+def optionen_erörtern(state, userid):
+    nachbarraume = nachbarraume_eroertern(userid, state["position"])
     if state["position"] == "Eingang":
         return room_eingang.erörtern(state)
     elif state["position"] == "Schatzkammer":
@@ -43,14 +43,14 @@ def optionen_erörtern(state):
         return room_leerRaum.erörtern(state)
 
 
-def nachbarraume_eroertern(eingangsid, raumname):
+def nachbarraume_eroertern(userid, raumname):
     conn, cursor = db_connect("zork", "zork", "zork")
-    cursor.execute("select raumname, x, y from raum where id >= %s and id <= %s", [eingangsid, eingangsid + 13])
+    cursor.execute("select raumname, x, y from raum where userid = %s", [userid])
     norden, osten, sueden, westen = "", "", "", ""
     raume = cursor.fetchall()
     for i in raume:
         if i[0] == raumname:
-            position = [i[0], i[1], i[2]]
+            position = i
     if raumname != "Menue":
         for i in raume:
             if i[1] == position[1] and i[2] - 1 == position[2]:
@@ -63,6 +63,41 @@ def nachbarraume_eroertern(eingangsid, raumname):
                 westen = i[0]
     conn.close()
     return {"norden": norden, "osten": osten, "sueden": sueden, "westen": westen}
+
+
+def generate_level(userid):
+
+    conn, cursor = db_connect("zork", "zork", "zork")
+    cursor.execute("insert into raum (raumname, x, y, userid) values('Eingang', '0', '0', %s)", [userid])
+    koordinaten = {
+        "Eingang" : (0, 0)
+    }
+    leerRaume = 10
+    raumAnzahl = 13
+    ausgangsPosition = {"x" : 0, "y" : 0}
+
+    while raumAnzahl:
+        raum = {
+            "name" : "",
+            "x" : 0,
+            "y" : 0
+        }
+
+        raum, positionErstellt = position_erstellen(raum, ausgangsPosition, koordinaten)
+
+        if positionErstellt:
+            raum, leerRaume = raumname_erstellen(leerRaume, raum, koordinaten)
+
+        if raum["name"]:
+            koordinaten[raum["name"]] = (raum["x"], raum["y"])
+            raumAnzahl = raumAnzahl -1
+            print(raum)
+            ausgangsPosition["x"] = raum["x"]
+            ausgangsPosition["y"] = raum["y"]
+            cursor.execute("insert into raum (raumname, x, y, userid) values (%s, %s, %s, %s)" , [raum["name"], raum["x"], raum["y"], userid])
+    conn.commit()
+    conn.close()
+    print("Level wurde generiert!")
 
 
 def db_connect(user, password, database):
@@ -128,7 +163,7 @@ def process_state():
     choice = request.form.get('choice')
 
     state = load_game(session["userid"])
-    nachbarraume = nachbarraume_eroertern(1, state["position"])
+    nachbarraume = nachbarraume_eroertern(session["userid"], state["position"])
 
     state = optionen_verarbeiten(state, choice)
     state = room_common.position_wechseln(choice, state, nachbarraume)
@@ -142,9 +177,10 @@ def process_state():
 def render_zork():
 
     state = load_game(session["userid"])
-    nachbarraume = nachbarraume_eroertern(1, state["position"])
+    print(state["position"], state)
+    nachbarraume = nachbarraume_eroertern(session["userid"], state["position"])
 
-    raumoptionen, beschreibung = optionen_erörtern(state)
+    raumoptionen, beschreibung = optionen_erörtern(state, session["userid"])
     bewegungsoptionen = room_common.position_darlegen(nachbarraume)
     optionen = {**raumoptionen, **bewegungsoptionen}
 
@@ -231,6 +267,43 @@ def render_profil():
         return render_template("profil.html", username="none")
 
 
+@app.route("/level", methods=["POST"])
+def levels():
+    conn, cursor = db_connect("zork", "zork", "zork")
+    id = session["userid"]
+    cursor.execute("select userid from raum where userid = %s", [id])
+    user_raume = cursor.fetchall()
+    if request.form.get('new_level'):
+        if user_raume:
+            cursor.execute("""
+                update users set
+                    (hp,
+                    position,
+                    dragonalive,
+                    swordavail,
+                    treasureavail,
+                    brunnennutzungen)
+                =
+                    (5,
+                    'Eingang',
+                    true,
+                    true,
+                    true,
+                    5)
+                where id = %s
+                """ , [id])
+            cursor.execute("delete from raum where userid = %s", [id])
+            conn.commit()
+            conn.close()
+            generate_level(id)
+        else:
+            generate_level(id)
+    return redirect("/level", code=302)
+
+
+@app.route("/level", methods=["GET"])
+def render_levels():
+    return render_template("level.html")
 # ==============================================================================
 
 
@@ -278,40 +351,3 @@ def position_erstellen(raum, ausgangsPosition, koordinaten):
             positionErstellt = False
 
     return raum, positionErstellt
-
-
-@app.cli.command()
-def generate_level():
-
-    conn, cursor = db_connect("zork", "zork", "zork")
-    cursor.execute("insert into raum (raumname, x, y) values('Eingang', '0', '0')")
-    koordinaten = {
-        "Eingang" : (0, 0)
-    }
-    leerRaume = 10
-    raumAnzahl = 13
-    ausgangsPosition = {"x" : 0, "y" : 0}
-
-    while raumAnzahl:
-        raum = {
-            "name" : "",
-            "x" : 0,
-            "y" : 0
-        }
-
-        raum, positionErstellt = position_erstellen(raum, ausgangsPosition, koordinaten)
-
-        if positionErstellt:
-            raum, leerRaume = raumname_erstellen(leerRaume, raum, koordinaten)
-
-        if raum["name"]:
-            koordinaten[raum["name"]] = (raum["x"], raum["y"])
-            raumAnzahl = raumAnzahl -1
-            print(raum)
-            ausgangsPosition["x"] = raum["x"]
-            ausgangsPosition["y"] = raum["y"]
-            cursor.execute("insert into raum (raumname, x, y) values (%s, %s, %s)" , [raum["name"], raum["x"], raum["y"]])
-    conn.commit()
-    conn.close()
-    print("Level wurde generiert!")
-    print(nachbarraume_eroertern(15, ["Schatzkammer", 0,-2]))

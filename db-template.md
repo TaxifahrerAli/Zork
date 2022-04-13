@@ -15,5 +15,6 @@ create table raum (
     id serial primary key,
     raumname text,
     x int,
-    y int
+    y int,
+    userid int
 );

@@ -191,6 +191,22 @@ listet alle Keys und Values eines Dictionaries auf.
     for key, value in x.items():
         print("Der Key ist %s, der Value ist %s" % (key, value))
 
+## Iteration 8
+
+### Level Pro User
+
+* Erweitere die Raumtabelle um einen `Foreign Key` auf die Usertabelle
+* Sorge dafür dass die bisherige Funktionalität auf dem Level des eingeloggten
+    Users ausgeführt wird
+* Erweitere die Datenbankbeschreibung um passendes SQL, um die neue Usertabelle
+    anzulegen oder zu ändern
+### Neue Level
+
+* Programmiere einen Controller `/level/`, auf dem ein Formular mit nur
+    einem Button 'Neues Level' angezeigt wird, welcher, wenn man ihn anclickt,
+    ein neues Level für den aktuell eingeloggten User erstellt, und ein
+    eventuell vorher existierendes verwirft.
+    
 ## Hilfreiches
 
 ### Gameloop
