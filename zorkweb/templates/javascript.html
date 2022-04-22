@@ -6,20 +6,20 @@
                 lebenspunkte = document.querySelector("#lebenspunkte"),
                 inventar = document.querySelector("#inventar"),
                 optionen = document.querySelector("#optionen")
-            beschreibung.innerHTML = data.description
-            lebenspunkte.innerHTML = data.hp + "❤️"
+            beschreibung.innerHTML = data.description;
+            lebenspunkte.innerHTML = data.hp + "❤️";
             for (key in data.inventory) {
                 let el = document.createElement("li")
                 el.innerHTML = data.inventory[key]
                 inventar.appendChild(el)
-            }
+            };
             for (key in data.choices) {
                 let el = document.createElement("li")
                 el.innerHTML = data.choices[key]
                 optionen.appendChild(el)
-            }
-          console.log(data, "!")
-      })
+            };
+          console.log(data, "!");
+      });
 </script>
 <p id="beschreibung"></p>
 <p id="lebenspunkte"></p>

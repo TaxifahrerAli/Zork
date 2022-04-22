@@ -190,6 +190,15 @@ def save_game(state, userid):
     conn.close()
 
 
+def get_inventory(state):
+    inventory = []
+    if not state["treasureAvail"]:
+        inventory.append("Schatz")
+    if not state["swordAvail"]:
+        inventory.append("Schwert")
+    return inventory
+
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sldfnalsdnf5'
 
@@ -243,10 +252,7 @@ def render_game():
     return {
         "description": beschreibung,
         "hp": state["hp"],
-        "inventory": [
-          "Schwert" if not state["swordAvail"] else "",
-          "Schatz" if not state["treasureAvail"] else ""
-        ],
+        "inventory":get_inventory(state),
         "choices": optionen
     }
 
