@@ -206,7 +206,47 @@ listet alle Keys und Values eines Dictionaries auf.
     einem Button 'Neues Level' angezeigt wird, welcher, wenn man ihn anclickt,
     ein neues Level für den aktuell eingeloggten User erstellt, und ein
     eventuell vorher existierendes verwirft.
-    
+
+## Iteration 9
+
+Kopiere den GET '/zork/' Controller, so dass er unter '/api/game/' ist. Ändere
+ihn so, dass er als antwort kein Template zurückgibt, sondern ein JSON-Objekt,
+in der Form:
+
+    {
+        "description": "Du bist beim Brunnen, er enthält 5 Schluck Heilwasser",
+        "hp": 5,
+        "inventory": [
+          "Schwert",
+        ],
+        "choices": {
+            "trinken": "Aus dem Brunnen trinken",
+            "norden": "Nach Norden"
+        }
+    }
+
+
+Erstelle einen neuen Controller, '/zorkjs/', der ein neues Template rendert. In
+dieses Template kommt das Javascript.
+
+Das Javascript soll eine HTTP-Anfrage stellen (siehe JavaScript-Grundlagen/HTTP-Anfrage),
+das Ergebnis soll auf der Webseite angezeigt werden (siehe
+JavaScript-Grundlagen/Inhalte auf der Seite ändern).
+
+Beispielsweise sollte für die Antwort oben die seite in etwa so aussehen:
+
+    Du bist beim Brunnen, er enthält 5 Schluck Heilwasser
+
+    5❤️
+
+    Du hast
+      - Schwert
+
+    [Aus dem Brunnen Trinken]
+    [Nach Norden]
+
+Die Choices müssen noch keine Wirkung haben.
+
 ## Hilfreiches
 
 ### Gameloop
@@ -299,3 +339,75 @@ folgendes:
         print(fp.read())
 
     # merke: close erfolgt automatisch
+
+### Ajax
+
+Normalerweise funktioniert ein Browser so, dass per
+
+* URL Eingeben
+* Link anklicken
+* Formular auslösen
+
+eine HTTP-Anfrage gestellt wird, und das Ergebnis der HTTP-Anfrage das aktuell
+angezeigte Dokument im Browser wird.
+
+Beispiele:
+
+* Es wird http://google.de in die Adresszeile eingeben, Browser stellt eine Anfrage
+  an dieser URL, als Antwort kommt die Suchformularseite, die dann angezeigt wird.
+
+* Es wird 'how is babby formed' ins Suchformular eingegeben, der Browser fragt
+  die URL https://www.google.com/search?q=how+is+babby+formed an, als Anwort kommt
+  die Ergebnisseite, die dann angezeit wird
+
+Mittels JavaScript auf einer Webseite kann eine HTTP-Anfrage gestellt werden, welche
+nicht das angezeigte Dokument ersetzt, sondern im JavaScript-Programm zur
+Verfügung steht.
+
+Dabei werden oft nicht Menschenlesbare Webseiten übermittelt, sondern
+Maschinenlesbare Daten.
+
+Die ersten Programme, die JavaScript so nutzten, fragten XML-Dokumente ab,
+weshalb HTTP-Anfragen aus JavaScript heraus "AJAX" genannt werden
+(Asynchronous JavaScript and XML).
+
+### Grundlagen Javascript
+
+Doku: https://developer.mozilla.org/en-US/docs/Web
+
+Javascript in einer HTML-Seite einbinden:
+
+  <script>
+    console.log("Hello world!");
+  </script> 
+
+Vorhandene Elemente auf der Seite finden:
+
+    // <button id="okbutton">Ich bin der OK-Button</button>
+    // <div><span>Ich bin ein Span in einem Div</span></div>
+
+    const button = document.querySelector('#okbutton');
+    const span = document.querySelector('div span');
+
+Inhalte auf der Seite ändern:
+
+    // wenn HTML
+    span.innerHTML = 'Ich bin der <strong>neue</strong> Inhalt vom SPAN'
+
+    // wenn Text
+    span.innerText = 'Ich bin der <strong>neue</strong> Inhalt vom SPAN'
+
+HTTP-Anfrage:
+
+    fetch('/irgendwas/', { method: 'GET', credentials: 'include' })
+      .then(response => response.json())
+      .then(data => {
+          // hier kann die Antwort verarbeitet werden.
+          console.log(data)
+      })
+
+Eventhandler:
+
+    button.addEventHandler('click', () => {
+      console.log('der button wurde angeclickt');
+    })

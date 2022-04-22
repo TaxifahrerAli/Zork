@@ -44,29 +44,42 @@ def optionen_erörtern(state, userid):
 
 
 def nachbarraume_eroertern(userid, raumname):
-    conn, cursor = db_connect("zork", "zork", "zork")
-    cursor.execute("select raumname, x, y from raum where userid = %s", [userid])
-    norden, osten, sueden, westen = "", "", "", ""
-    raume = cursor.fetchall()
-    for i in raume:
-        if i[0] == raumname:
-            position = i
-    if raumname != "Menue":
-        cursor.execute("select raumname, x, y from raum where x = %s and y - 1 = %s and userid = %s", [position[1], position[2], userid])
-        norden = cursor.fetchall()
-        cursor.execute("select raumname, x, y from raum where x - 1 = %s and y = %s and userid = %s", [position[1], position[2], userid])
-        westen = cursor.fetchall()
-        cursor.execute("select raumname, x, y from raum where x = %s and y + 1 = %s and userid = %s", [position[1], position[2], userid])
-        sueden = cursor.fetchall()
-        cursor.execute("select raumname, x, y from raum where x + 1 = %s and y = %s and userid = %s", [position[1], position[2], userid])
-        osten = cursor.fetchall()
+    """
+    Findet die Nachbarräume von [raumname] im Level von [userid]
+    Antowrt: {"norden": (), "osten": (), "sueden": (), "westen": "Schatzkammer"}
+    """
+    if raumname == "Menue":
+        return {"norden": (), "osten": (), "sueden": (), "westen": ()}
 
-        raume = {"norden": norden, "osten": osten, "sueden": sueden, "westen": westen}
-        for key, value in raume.items():
-            if value:
-                raume[key] = value[0][0]
+    conn, cursor = db_connect("zork", "zork", "zork")
+
+    cursor.execute("select x, y from raum where userid = %s and raumname = %s", [userid, raumname])
+    koords = cursor.fetchall()
+    print(koords)
+    x, y = koords[0]
+
+    cursor.execute("""
+    select raumname, x, y from raum where
+    (x = %s and y - 1 = %s or
+    x - 1 = %s and y = %s or
+    x = %s and y + 1 = %s or
+    x + 1 = %s and y = %s) and userid = %s
+    """, [x, y, x, y, x, y, x, y, userid])
+    raume = cursor.fetchall()
+
+    norden, osten, sueden, westen = (), (), (), ()
+    for name, rx, ry in raume:
+        if rx == x and ry - 1 == y:
+            norden = name
+        elif rx + 1 == x and ry == y:
+            osten = name
+        elif rx == x and ry + 1 == y:
+            sueden = name
+        elif rx - 1 == x and ry == y:
+            westen = name
+
     conn.close()
-    return raume
+    return {"norden": norden, "osten": osten, "sueden": sueden, "westen": westen}
 
 
 def generate_level(userid):
@@ -160,7 +173,6 @@ def load_game(userid):
 def save_game(state, userid):
     conn, cursor = db_connect("zork", "zork", "zork")
     userid = session["userid"]
-    print(state)
     cursor.execute("""
         update users set
             hp = %s,
@@ -215,6 +227,33 @@ def render_zork():
         optionen=optionen,
         state=state
     )
+
+
+@app.route("/api/game/", methods=["GET"])
+def render_game():
+
+    state = load_game(session["userid"])
+    print(state["position"], state)
+    nachbarraume = nachbarraume_eroertern(session["userid"], state["position"])
+
+    raumoptionen, beschreibung = optionen_erörtern(state, session["userid"])
+    bewegungsoptionen = room_common.position_darlegen(nachbarraume)
+    optionen = {**raumoptionen, **bewegungsoptionen}
+
+    return {
+        "description": beschreibung,
+        "hp": state["hp"],
+        "inventory": [
+          "Schwert" if not state["swordAvail"] else "",
+          "Schatz" if not state["treasureAvail"] else ""
+        ],
+        "choices": optionen
+    }
+
+
+@app.route("/zorkjs/", methods=["GET"])
+def render_templatee():
+    return render_template("javascript.html")
 
 
 @app.route("/users", methods=["GET"])
