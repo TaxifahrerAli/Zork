@@ -1,3 +1,4 @@
 __pycache__/
 /save.json
 /venv
+/node_modules
