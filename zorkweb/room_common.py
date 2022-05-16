@@ -1,5 +1,4 @@
 def position_darlegen(nachbarraume):
-    print(nachbarraume)
     optionen = {}
     for key, value in nachbarraume.items():
         if value:

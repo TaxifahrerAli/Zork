@@ -15,3 +15,5 @@ insert into sortiment (produkt, preis) values ('Banane', '0,5')
 # Daten löschen
 delete from NAME where BEDINGUNG
 delete from sortiment where preis = '1'
+# Daten updaten
+update NAME set VALUE = VALUE where BEDINGUNG

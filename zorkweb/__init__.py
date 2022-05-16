@@ -16,7 +16,7 @@ def optionen_verarbeiten(state, choice):
         state = room_eingang.verarbeiten(state, choice)
     elif state["position"] == "Schatzkammer":
         state = room_schatzkammer.verarbeiten(state, choice)
-    elif state["position"] == "Handler":
+    elif state["position"] == "Haendler":
         state = room_handler.verarbeiten(state, choice)
     elif state["position"] == "Brunnen" and state["hp"] > 0:
         state = room_brunnen.verarbeiten(state, choice)
@@ -33,7 +33,7 @@ def optionen_erörtern(state, userid):
         return room_eingang.erörtern(state)
     elif state["position"] == "Schatzkammer":
         return room_schatzkammer.erörtern(state)
-    elif state["position"] == "Handler":
+    elif state["position"] == "Haendler":
         return room_handler.erörtern(state)
     elif state["position"] == "Brunnen":
         return room_brunnen.erörtern(state)
@@ -55,7 +55,6 @@ def nachbarraume_eroertern(userid, raumname):
 
     cursor.execute("select x, y from raum where userid = %s and raumname = %s", [userid, raumname])
     koords = cursor.fetchall()
-    print(koords)
     x, y = koords[0]
 
     cursor.execute("""
@@ -77,7 +76,6 @@ def nachbarraume_eroertern(userid, raumname):
             sueden = name
         elif rx - 1 == x and ry == y:
             westen = name
-
     conn.close()
     return {"norden": norden, "osten": osten, "sueden": sueden, "westen": westen}
 
@@ -223,7 +221,6 @@ def process_state():
 def render_zork():
 
     state = load_game(session["userid"])
-    print(state["position"], state)
     nachbarraume = nachbarraume_eroertern(session["userid"], state["position"])
 
     raumoptionen, beschreibung = optionen_erörtern(state, session["userid"])
@@ -242,7 +239,6 @@ def render_zork():
 def render_game():
 
     state = load_game(session["userid"])
-    print(state["position"], state)
     nachbarraume = nachbarraume_eroertern(session["userid"], state["position"])
 
     raumoptionen, beschreibung = optionen_erörtern(state, session["userid"])
@@ -260,6 +256,20 @@ def render_game():
 @app.route("/zorkjs/", methods=["GET"])
 def render_templatee():
     return render_template("javascript.html")
+
+@app.route("/api/game/", methods=["POST"])
+def get_choice():
+    choice = request.get_data().decode("ascii")
+
+    state = load_game(session["userid"])
+    nachbarraume = nachbarraume_eroertern(session["userid"], state["position"])
+
+    state = optionen_verarbeiten(state, choice)
+    state = room_common.position_wechseln(choice, state, nachbarraume)
+
+    save_game(state, session["userid"])
+
+    return ""
 
 
 @app.route("/users", methods=["GET"])

@@ -7,7 +7,7 @@ def verarbeiten(state, choice):
 
 
 def erörtern(state):
-    beschreibung = "Du bist beim Händler"
+    beschreibung = "Du bist beim Haendler"
     optionen = {}
     if state["swordAvail"]:
         optionen = {**optionen, "schwertKaufen": "Schwert kaufen"}

@@ -1,7 +1,6 @@
 from . import room_common
 
 def verarbeiten(state, choice):
-    print(choice, state)
     if choice == "trinken":
         state = {**state, "brunnenNutzungen": state["brunnenNutzungen"] - 1, "hp": 5}
     return state

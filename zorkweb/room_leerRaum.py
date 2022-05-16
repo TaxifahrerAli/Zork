@@ -6,5 +6,5 @@ def verarbeiten(state, choice):
 
 def erörtern(state):
     optionen = {}
-    beschreibung = "Du bist in einem Leerraum."
+    beschreibung = "Du bist im Raum %s" % state["position"]
     return optionen, beschreibung

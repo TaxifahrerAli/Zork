@@ -406,8 +406,8 @@ HTTP-Anfrage:
           console.log(data)
       })
 
-Eventhandler:
+Eventlistener:
 
-    button.addEventHandler('click', () => {
+    button.addEventListener('click', () => {
       console.log('der button wurde angeclickt');
     })
